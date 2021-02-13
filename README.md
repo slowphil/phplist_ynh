@@ -19,10 +19,10 @@ Phplist manages sending emails to lists. The lists can be uploaded but user can 
 ## Configuration
 Once installed, go to the chosen URL and log in as admin with the password you enter upon configuring.
 
-### Demo mode
+### Toggling Test Mode
 Immediatly after setup, Phplist runs in test mode, not sending emails. This not a bug : before real use, a lot of stuff need to be configured right and need testing (otherwise you would soon become flagged as a spammer). 
 
-Once configured and dry-run tested, the demo mode can be turned off by using the (experimental) config-panel of our app.
+Once configured and dry-run tested, the demo mode can be turned off from the (experimental) config-panel of our app.
 To reach this confi-panel, go to your Yunohost admin panel, navigate to your Phplist install and append /config-panel to the path, eg:
 https://mydomain.tld/yunohost/admin/#/apps/phplist/config-panel 
 
