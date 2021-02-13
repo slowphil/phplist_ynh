@@ -18,10 +18,24 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
-admin=$(ynh_app_setting_get --app=$app --key=admin)
+is_public=$(ynh_app_setting_get --app=$app --key=is_public)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 language=$(ynh_app_setting_get --app=$app --key=language)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+with_mysql=$(ynh_app_setting_get --app=$app --key=with_mysql)
+password=$(ynh_app_setting_get --app=$app --key=password)
+
+admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
+
+db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
+phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
+skipped_uris=$(ynh_app_setting_get --app=$app --key=skipped_uris)
+admin=$(ynh_app_setting_get --app=$app --key=admin)
+orga=$(ynh_app_setting_get --app=$app --key=org)
+
+
+fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
+fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 
 #=================================================
 # CHECK VERSION
@@ -97,9 +111,6 @@ ynh_abort_if_errors
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping a systemd service..." --time --weight=1
-
-ynh_systemd_action --service_name=$app --action="stop" --log_path="/var/log/$app/$app.log"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -110,8 +121,61 @@ then
 	ynh_script_progression --message="Upgrading source files..." --time --weight=1
 
 	# Download, check integrity, uncompress and patch the source from app.src
-	ynh_setup_source --dest_dir="$final_path"
+  unpackdir="/tmp/phplist_src"
+  if [ -d $unpackdir ]
+  then
+      ynh_secure_remove($unpackdir)
+  fi 
+  mkdir $unpackdir
+  ynh_setup_source --dest_dir=$unpackdir
+
+  mkdir -p "$final_path"
+
+  # Copy files to the right place
+  cp -R "$unpackdir/public_html/lists" "$final_path/"
+
+  ynh_secure_remove($unpackdir)
 fi
+
+# adjust config files
+# the replacements we perform here were working for the version intitially packaged; they are not garabtied to work for later version...
+
+# use extended config file
+
+mv "$final_path/lists/config/config.php" "$final_path/lists/config/config_short.php"
+mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
+
+# adjust $pageroot = $path_url
+# from phplist :
+# Warning: Do not change this after installation. You can only change this before you install and initialise phpList.
+# If you install phpList in the document root then the value should be an empty string, not '/'.
+if [ "$path_url" = "/" ] ; then
+  ynh_replace_string --match_string="\$pageroot = '/lists';" --replace_string="\$pageroot = '';" --target_file="$final_path/lists/config/config.php"
+else
+  ynh_replace_string --match_string="\$pageroot = '/lists';" --replace_string="\$pageroot = '$path_url';" --target_file="$final_path/lists/config/config.php"
+fi
+
+ynh_replace_string --match_string="dbhost" --replace_string="localhost" --target_file="$final_path/lists/config/config.php"
+ynh_replace_string --match_string="phplistdb" --replace_string="${db_name}" --target_file="$final_path/lists/config/config.php"
+ynh_replace_string --match_string="\$database_user = 'phplist';" --replace_string="\$database_user = '${db_user}';" --target_file="$final_path/lists/config/config.php"
+ynh_replace_string --match_string="\$database_password = 'phplist';" --replace_string="\$database_password = '${db_pwd}';" --target_file="$final_path/lists/config/config.php"
+
+if [ "$language" != "en" ]; then
+  ynh_replace_string --match_string="\$default_system_language = 'en';" --replace_string="\$default_system_language = '$language';" --target_file="$final_path/lists/config/config.php"
+fi 
+
+if [ "$language" = "fr" ]; then
+  ynh_replace_string --match_string="\$language_module = 'english.inc';" --replace_string="\$language_module = 'french.inc';" --target_file="$final_path/lists/config/config.php"
+  #fix many untranslated texts
+  patch -i /$YNH_CWD/../defaultconfig-fr.patch $final_path/lists/admin/defaultconfig.php 
+fi 
+
+#toggle test mode off (enable sending) -use actions instead
+#ynh_replace_string --match_string="(\"TEST\",1)" --replace_string="(\"TEST\",0)" --target_file="$final_path/lists/config/config.php"
+
+#disable tracking by default
+ynh_replace_string --match_string="// define('ALWAYS_ADD_USERTRACK',0);" --replace_string="define('ALWAYS_ADD_USERTRACK',0);" --target_file="$final_path/lists/config/config.php"
+ynh_replace_string --match_string="define('CLICKTRACK', 1);" --replace_string="define('CLICKTRACK', 0);" --target_file="$final_path/lists/config/config.php"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -134,7 +198,7 @@ ynh_install_app_dependencies $pkg_dependencies
 ynh_script_progression --message="Making sure dedicated system user exists..." --time --weight=1
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -153,10 +217,6 @@ ynh_add_fpm_config
 #=================================================
 # SETUP SYSTEMD
 #=================================================
-ynh_script_progression --message="Upgrading systemd configuration..." --time --weight=1
-
-# Create a dedicated systemd config
-ynh_add_systemd_config
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -169,7 +229,7 @@ ynh_backup_if_checksum_is_different --file="$final_path/CONFIG_FILE"
 ynh_replace_string --match_string="match_string" --replace_string="replace_string" --target_file="$final_path/CONFIG_FILE"
 
 # Recalculate and store the checksum of the file for the next upgrade.
-ynh_store_file_checksum --file="$final_path/CONFIG_FILE"
+ynh_store_file_checksum --file="$final_path/lists/config/config.php"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -179,6 +239,9 @@ ynh_store_file_checksum --file="$final_path/CONFIG_FILE"
 
 # Set permissions on app files
 chown -R root: $final_path
+# for enabling plugins installation
+chown -R $app: "$final_path/lists/admin/plugins"
+
 
 #=================================================
 # SETUP LOGROTATE
@@ -191,16 +254,10 @@ ynh_use_logrotate --non-append
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --time --weight=1
-
-yunohost service add $app --description="A short description of the app" --log="/var/log/$app/$app.log"
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --time --weight=1
-
-ynh_systemd_action --service_name=$app --action="start" --log_path="/var/log/$app/$app.log"
 
 #=================================================
 # UPGRADE FAIL2BAN
@@ -208,7 +265,8 @@ ynh_systemd_action --service_name=$app --action="start" --log_path="/var/log/$ap
 ynh_script_progression --message="Reconfiguring Fail2Ban..." --time --weight=1
 
 # Create a dedicated Fail2Ban config
-ynh_add_fail2ban_config --logpath="/var/log/nginx/${domain}-error.log" --failregex="Regex to match into the log for a failed login"
+#TODO!
+#ynh_add_fail2ban_config --logpath="/var/log/nginx/${domain}-error.log" --failregex="Regex to match into the log for a failed login"
 
 #=================================================
 # RELOAD NGINX

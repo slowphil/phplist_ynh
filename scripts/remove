@@ -17,7 +17,6 @@ ynh_script_progression --message="Loading installation settings..." --time --wei
 app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
-port=$(ynh_app_setting_get --app=$app --key=port)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$db_name
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
@@ -27,22 +26,11 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 #=================================================
 # REMOVE SERVICE INTEGRATION IN YUNOHOST
 #=================================================
-
-# Remove the service from the list of services known by YunoHost (added from `yunohost service add`)
-if ynh_exec_warn_less yunohost service status $app >/dev/null
-then
-	ynh_script_progression --message="Removing $app service integration..." --time --weight=1
-	yunohost service remove $app
-fi
-
+# nothing to do
 #=================================================
 # STOP AND REMOVE SERVICE
 #=================================================
-ynh_script_progression --message="Stopping and removing the systemd service..." --time --weight=1
-
-# Remove the dedicated systemd config
-ynh_remove_systemd_config
-
+# nothing to do
 #=================================================
 # REMOVE THE MYSQL DATABASE
 #=================================================
@@ -95,11 +83,7 @@ ynh_remove_logrotate
 # CLOSE A PORT
 #=================================================
 
-if yunohost firewall list | grep -q "\- $port$"
-then
-	ynh_script_progression --message="Closing port $port..." --time --weight=1
-	ynh_exec_warn_less yunohost firewall disallow TCP $port
-fi
+#nothing to do
 
 #=================================================
 # REMOVE FAIL2BAN CONFIGURATION
@@ -116,7 +100,7 @@ ynh_remove_fail2ban_config
 #=================================================
 
 # Remove a cron file
-ynh_secure_remove --file="/etc/cron.d/$app"
+#ynh_secure_remove --file="/etc/cron.d/$app"
 
 # Remove a directory securely
 ynh_secure_remove --file="/etc/$app/"

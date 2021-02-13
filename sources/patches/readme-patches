@@ -1,0 +1,2 @@
+The patch file defaultconfig-fr.diff is applied only when the app is installed in French language, to fix untranslated sentences.
+It has a .diff (not .patch) extension in order to not be applied automatically by the install script.

@@ -1,18 +1,17 @@
 {
-    "name": "YunoHost example app",
-    "id": "ynhexample",
+    "id": "phplist",
+    "name": "Phplist newsletter server",
     "packaging_format": 1,
     "description": {
-        "en": "Explain in *a few (10~15) words* the purpose of the app or what it actually does (it is meant to give a rough idea to users browsing a catalog of 100+ apps)",
-        "fr": "Expliquez en *quelques* (10~15) mots l'utilité de l'app ou ce qu'elle fait (l'objectif est de donner une idée grossière pour des utilisateurs qui naviguent dans un catalogue de 100+ apps)"
+        "en": "Manages your newletters & subscribers lists",
+        "fr": "Gère vos newsletters et listes d'abonnés"
     },
-    "version": "1.0~ynh1",
-    "url": "https://example.com",
-    "license": "free",
+    "version": "3.6.0~ynh0",
+    "url": "https://github.com/phpList/phplist3",
+    "license": "AGPL-V3",
     "maintainer": {
-        "name": "John doe",
-        "email": "john.doe@example.com",
-        "url": "http://example.com"
+        "name": "None...",
+        "email": ""
     },
     "requirements": {
         "yunohost": ">= 4.1.3"
@@ -29,8 +28,8 @@
                 "name": "domain",
                 "type": "domain",
                 "ask": {
-                    "en": "Choose a domain name for ynhexample",
-                    "fr": "Choisissez un nom de domaine pour ynhexample"
+                    "en": "Choose a domain for Phplist",
+                    "fr": "Choisissez un domaine pour Phplist"
                 },
                 "example": "example.com"
             },
@@ -38,20 +37,15 @@
                 "name": "path",
                 "type": "path",
                 "ask": {
-                    "en": "Choose a path for ynhexample",
-                    "fr": "Choisissez un chemin pour ynhexample"
+                    "en": "Choose a path for Phplist",
+                    "fr": "Choisissez un chemin pour Phplist"
                 },
                 "example": "/example",
-                "default": "/example"
-            },
-            {
-                "name": "admin",
-                "type": "user",
-                "ask": {
-                    "en": "Choose an admin user",
-                    "fr": "Choisissez l'administrateur"
-                },
-                "example": "johndoe"
+                "default": "/lists",
+                "help": {
+                    "en": "You can only change this before you install and initialise PhpList",
+                    "fr": "Vous pouvez seulement changer ce chemin avant d'initialiser Phplist"
+                }
             },
             {
                 "name": "is_public",
@@ -73,6 +67,24 @@
                 "default": "fr"
             },
             {
+                "name": "organisation",
+                "type": "string",
+                "ask": {
+                    "en": "Name of the organisation sending emails with Phplist",
+                    "fr": "Nom de l'organisation qui envoie les mails avec Phplist"
+                },
+                "example": ""
+            },
+            {
+                "name": "admin",
+                "type": "user",
+                "ask": {
+                    "en": "Choose the user who can access Phplist's /admin",
+                    "fr": "Choisissez l'utilisateur qui peut accéder à la page /admin de Phplist"
+                },
+                "example": "johndoe"
+            }, 
+            {
                 "name": "password",
                 "type": "password",
                 "ask": {
@@ -80,10 +92,19 @@
                     "fr": "Définissez le mot de passe administrateur"
                 },
                 "help": {
-                    "en": "Use the help field to add an information for the admin about this question.",
-                    "fr": "Utilisez le champ aide pour ajouter une information à l'intention de l'administrateur à propos de cette question."
+                    "en": "administrator password for Phplist's /admin page (initial login: admin)" ,
+                    "fr": "Mot de passe d'administrateur pour la page /admin  de Phplist (login initial: admin)"
                 },
                 "example": "Choose a password"
+            },
+            {
+                "name": "email",
+                "type": "string",
+                "ask": {
+                    "en": "The email address of the administrator",
+                    "fr": "L'adresse mail de l'administrateur"
+                },
+                "example": "johndoe@mydomain.tld"
             }
         ]
     }

@@ -1,0 +1,32 @@
+[test]
+name = "Enable or disable sending emails"
+command = "/bin/bash scripts/actions/test"
+# user = "root"  # optional
+# cwd = "/" # optional
+# accepted_return_codes = [0, 1, 2, 3]  # optional
+accepted_return_codes = [0]
+description = "Enable or disable sending emails."
+
+    [test.arguments]
+        [test.arguments.test_mode]
+            type = "boolean"
+            ask = "Disable sending emails?"
+            default = true
+
+[create_database]
+name = "Create a database"
+command = "/bin/bash scripts/actions/create_database"
+# user = "root"  # optional
+# cwd = "/" # optional
+# accepted_return_codes = [0, 1, 2, 3]  # optional
+accepted_return_codes = [0]
+description = "Create a database or replace a previous one."
+
+[remove_database]
+name = "Remove a database"
+command = "/bin/bash scripts/actions/remove_database"
+# user = "root"  # optional
+# cwd = "/" # optional
+# accepted_return_codes = [0, 1, 2, 3]  # optional
+accepted_return_codes = [0]
+description = "Remove the current database."

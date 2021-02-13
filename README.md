@@ -1,84 +1,56 @@
-# Usage of this package (REMOVE THIS SECTION BEFORE RELEASE)
-- Copy this app before working on it.
-- Edit the `conf/nginx.conf` file to match app prerequisites.
-- Edit the `manifest.json` with app specific info.
-- Edit the `install`, `upgrade`, `remove`, `backup`, and `restore` scripts.
-  - Using the [script helpers documentation.](https://yunohost.org/#/packaging_apps_helpers)
-- Add a `LICENSE` file for the package.
-- Edit `README.md` and `README_fr.md`.
+# Phplist for YunoHost
 
-# Example app for YunoHost
-
-[![Integration level](https://dash.yunohost.org/integration/REPLACEBYYOURAPP.svg)](https://dash.yunohost.org/appci/app/REPLACEBYYOURAPP) ![](https://ci-apps.yunohost.org/ci/badges/REPLACEBYYOURAPP.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/REPLACEBYYOURAPP.maintain.svg)  
-[![Install REPLACEBYYOURAPP with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=REPLACEBYYOURAPP)
-
-*[Lire ce readme en français.](./README_fr.md)*
-
-> *This package allows you to install REPLACEBYYOURAPP quickly and simply on a YunoHost server.  
-If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/install) to learn how to install it.*
+> *This package allow you to install [Phplist](https://www.phplist.org/) on a YunoHost server.  
+If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
 
 ## Overview
-Quick description of this app.
 
-**Shipped version:** 1.0
+Phplist manages sending emails to lists. The lists can be uploaded but user can also subscribe/unsubscibe.
+
+**THIS IS WORK IN PROGRESS - NOT FOR PRODUCTION**
+
+**Shipped version:** 3.6.0
+[source repo](https://github.com/phpList/phplist3)
 
 ## Screenshots
 
-![](Link to a screenshot of this app.)
-
 ## Demo
 
-* [Official demo](Link to a demo site for this app.)
-
 ## Configuration
+Once installed, go to the chosen URL and log in as admin with the password you enter upon configuring.
 
-How to configure this app: From an admin panel, a plain file with SSH, or any other way.
+### Demo mode
+Immediatly after setup, Phplist runs in test mode, not sending emails. This not a bug : before real use, a lot of stuff need to be configured right and need testing (otherwise you would soon become flagged as a spammer). For being able to send emails, for the moment one needs to manually edit /var/www/phplist/lists/config/config.php (assuming default install path). I will try to add an action in a control-panel.
+Once configured and dry-run tested, the demo mode can be turned off by using the (experimental) config-panel of our app.
+To reach this confi-panel, go to your Yunohost admin panel, navigate to your Phplist install and append /config-panel to the path, eg:
+https://mydomain.tld/yunohost/admin/#/apps/phplist/config-panel 
 
 ## Documentation
+This installer was derived from yunohost's template app [example](https://github.com/YunoHost/example_ynh)
+with small bits taken from [my_webapp_ynh](https://github.com/YunoHost-Apps/my_webapp_ynh) ([documentation](https://github.com/YunoHost/doc/blob/master/app_my_webapp.md)). I mostly stripped the SFTP stuff and adapted for Phplist.
 
- * Official documentation: Link to the official documentation of this app
- * YunoHost documentation: If specific documentation is needed, feel free to contribute.
+[Phplist documentation](https://www.phplist.org/)
 
 ## YunoHost specific features
 
 #### Multi-user support
 
-Are LDAP and HTTP auth supported?
-Can the app be used by multiple users?
+Are LDAP and HTTP auth supported? No, SSO not implemented at this point (help welcome)
+Can the app be used by multiple users? yes, provided the admin adds them in.
 
 #### Supported architectures
 
-* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/REPLACEBYYOURAPP%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/REPLACEBYYOURAPP/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/REPLACEBYYOURAPP%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/REPLACEBYYOURAPP/)
-
 ## Limitations
-
-* Any known limitations.
+Fail2ban not configured yet
+SSO not implemented
+Contact me if you know how to do that.
 
 ## Additional information
 
-* Other info you would like to add about this app.
-
-**More info on the documentation page:**  
-https://yunohost.org/packaging_apps
-
 ## Links
 
- * Report a bug: https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/issues
- * App website: Link to the official website of this app.
- * Upstream app repository: Link to the official repository of the upstream app.
+ * Report a bug: https://github.com/slowphil/phplist_ynh/issues
  * YunoHost website: https://yunohost.org/
 
 ---
 
-## Developer info
-
-**Only if you want to use a testing branch for coding, instead of merging directly into master.**
-Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing).
-
-To try the testing branch, please proceed like that.
-```
-sudo yunohost app install https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing --debug
-or
-sudo yunohost app upgrade REPLACEBYYOURAPP -u https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing --debug
-```

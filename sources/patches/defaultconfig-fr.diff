@@ -1,0 +1,203 @@
+--- defaultconfig.php
++++ defaultconfig.fr
+@@ -389,24 +389,23 @@
+     // their subscription
+     'subscribemessage' => array(
+         'value' =>
+-' You have been subscribed to the following newsletters:
++' Vous avez été abonné.e au canaux de messages suivants:  
+ 
+ [LISTS]
+ 
+ 
+-Please click the following link to confirm it\'s really you:
++Veuillez confirmer qu\'il s\'agit bien de vous en cliquant sur ce lien
+ 
+ [CONFIRMATIONURL]
+ 
+ 
+-In order to provide you with this service we\'ll need to
+-
+-Transfer your contact information to [DOMAIN]
+-Store your contact information in your [DOMAIN] account
+-Send you emails from [DOMAIN]
+-Track your interactions with these emails for marketing purposes
+-
+-If this is not correct, or you do not agree, simply take no action and delete this message.'
++Afin de vous fournir ce service avons besoin de
++
++Conserver vos informations de contact dans notre système [DOMAIN]
++Vous envoyer des emails depuis [DOMAIN]
++Nous ne traquons pas vos interactions avec le système en dehors du strict nécessaire et vos données ne seront pas exploitées à d\'autres fins.
++
++Si vous n\'êtes pas d\'accord, n\'avez rien à faire et vous pouvez effacer ce message.'
+     ,
+         'description' => s('Message subscribers receive when they sign up'),
+         'type'        => 'textarea',
+@@ -426,17 +425,14 @@
+     // message that is sent when they unsubscribe
+     'unsubscribemessage' => array(
+         'value' =>
+-'Goodbye from our Newsletter, sorry to see you go.
+-
+-You have been unsubscribed from our newsletters.
+-
+-This is the last email you will receive from us. Our newsletter system, phpList,
+-will refuse to send you any further messages, without manual intervention by our administrator.
+-
+-If there is an error in this information, you can re-subscribe:
+-please go to [SUBSCRIBEURL] and follow the steps.
+-
+-Thank you'
++'Vous avez été désabonné des tous nos canaux de message.
++
++Ceci est le dernier message que vous recevrez de nous. Notre système d\'envoi de message sur abonnement, phpList,
++ne pourra plus rien vous envoyer sans une intervention manuelle de d\'un administrateur.
++
++S\'il y a une erreur dans ces informations, vous pouvez vous ré-inscrire sur ce lien [SUBSCRIBEURL].
++
++Merci et au revoir.'
+   ,
+         'description' => s('Message subscribers receive when they unsubscribe'),
+         'type'        => 'textarea',
+@@ -456,17 +452,15 @@
+     // message that is sent to confirm subscription
+     'confirmationmessage' => array(
+         'value' =>
+-'Welcome to our Newsletter
+-
+-Please keep this message for later reference.
+-
+-Your email address has been added to the following newsletter(s):
++'Bienvenue à notre système d\'information par email
++
++Vous vous êtes abonné.e pour recevoir nos messages suivants:
+ [LISTS]
+ 
+-To update your details and preferences please go to [PREFERENCESURL].
+-If you do not want to receive any more messages, please go to [UNSUBSCRIBEURL].
+-
+-Thank you'
++Pour mettre à jour vos informations et préférences aller à [PREFERENCESURL].
++Pour vous déinscrire, aller à [UNSUBSCRIBEURL].
++
++Merci'
+   ,
+         'description' => s('Message subscribers receive after confirming their email address'),
+         'type'        => 'textarea',
+@@ -489,23 +483,21 @@
+     // userdata is replaced by the information in the database
+     'updatemessage' => array(
+         'value' =>
+-'This message is to inform you of a change of your details on our newsletter database
+-
+-You are currently member of the following newsletters:
++'Vos réglages ont été mis à jour dans notre système d\'information par email
++
++Vous êtes inscrit.e pour recvoir nos informations:
+ 
+ [LISTS]
+ 
+ [CONFIRMATIONINFO]
+ 
+-The information on our system for you is as follows:
++Vos informations personnelles dans notre système sont les suivantes:
+ 
+ [USERDATA]
+ 
+-If this is not correct, please update your information at the following location:
+-
+-[PREFERENCESURL]
+-
+-Thank you'
++Vous pouvez les corriger ou les mettre à jour à : [PREFERENCESURL]
++
++Merci'
+   ,
+         'description' => s('Message subscribers receive when they have changed their details'),
+         'type'        => 'textarea',
+@@ -518,8 +510,8 @@
+     // their email address
+     'emailchanged_text' => array(
+         'value' => '
+-  When updating your details, your email address has changed.
+-  Please confirm your new email address by visiting this webpage:
++  En modifiant vos informations, vous avez changé votre adresse mail.
++  Veuillez confirmer votre nouvelle adresse mail en visitant cette page web :
+ 
+   [CONFIRMATIONURL]
+ 
+@@ -535,11 +527,10 @@
+     // their email address
+     'emailchanged_text_oldaddress' => array(
+         'value' =>
+-'Please Note: when updating your details, your email address has changed.
+-
+-A message has been sent to your new email address with a URL
+-to confirm this change. Please visit this website to activate
+-your membership.'
++'En modifiant vos informations, vous avez changé votre adresse mail.
++
++Un message a été envoyé à votre nouvelle adresse avec un lien que vous devez visiter pour
++confirmer ce changement.'
+   ,
+         'description' => s('Part of the message that is sent to their old email address when subscribers change their information, and the email address has changed'),
+         'type'        => 'textarea',
+@@ -557,14 +548,13 @@
+ 
+     'personallocation_message' => array(
+         'value' =>
+-'You have requested your personal location to update your details in our newsletter database.
+-The location is below. Please make sure that you use the full line as mentioned below.
+-Sometimes email programs wrap the link over multiple lines.
+-
+-Your personal location is:
++'Vous avez demandé un lien personnel pour mettre à jour vos informations dans notre système d\'information par mail.
++Votre lien personnel est indiqué ci-dessous. Veillez à le copier en entier, les programmes de mail l\'affichent parfois sur plusieurs lignes.
++
++Votre lien personnel est:
+ [PREFERENCESURL]
+ 
+-Thank you.'
++Merci.'
+   ,
+         'description' => s('Message when subscribers request their personal location'),
+         'type'        => 'textarea',
+@@ -575,13 +565,12 @@
+     'messagefooter' => array(
+         'value' => '--
+ 
+-    <div class="footer" style="text-align:left; font-size: 75%;">
+-      <p>This message was sent to [EMAIL] by [FROMEMAIL].</p>
+-      <p>To forward this message, please do not use the forward button of your email application, because this message was made specifically for you only. Instead use the <a href="[FORWARDURL]">forward page</a> in our newsletter system.<br/>
+-      To change your details and to choose which lists to be subscribed to, visit your personal <a href="[PREFERENCESURL]">preferences page</a>.<br/>
+-      Or you can <a href="[UNSUBSCRIBEURL]">opt-out completely</a> from all future mailings.</p>
++<div class="footer" style="text-align:left; font-size: 75%;">
++      <p>Ce message a été envoyé à [EMAIL] par [FROMEMAIL].</p>
++      <p>Pour transférer ce message, prière de ne pas utiliser la fonction "forward" de votre application de mail, car ce message vous est spécifiquement adressé. A la place, utilisez  <a href="[FORWARDURL]">la page de transfert</a>de notre site.<br/>
++      Pour changer votre adresse ou vos abonnements à nos newletters, visitez votre <a href="[PREFERENCESURL]">page de préférences personnelle</a>.<br/>
++      Vous pouvez aussi <a href="[UNSUBSCRIBEURL]">vous désinscrire définitivement</a> de tout futur envoi.</p>
+     </div>
+-
+   ',
+         'description' => s('Default footer for sending a campaign'),
+         'type'        => 'textarea',
+@@ -591,13 +580,11 @@
+ 
+     'forwardfooter' => array(
+         'value' => '
+-     <div class="footer" style="text-align:left; font-size: 75%;">
+-      <p>This message has been forwarded to you by [FORWARDEDBY].</p>
+-      <p>You have not been automatically subscribed to this newsletter.</p>
+-      <p>If you think this newsletter may interest you, you can <a href="[SUBSCRIBEURL]">Subscribe</a> and you will receive our next newsletter directly to your inbox.</p>
+-      <p>You can also <a href="[BLACKLISTURL]">opt out completely</a> from receiving any further email from our newsletter application, phpList.</p>
+-    </div>
+-  ',
++<div class="footer" style="text-align:left; font-size: 75%;">
++<p>Ce message vous a été transféré par [FORWARDEDBY]; Vous n\'avez pas été automatiquement abonné à nos envois de message.</p>
++<p>Si nos messages vous intéressent, vous pouvez <a href="[SUBSCRIBEURL]">vous y abonner</a> pour recevoir les prochains directement.</p>
++<p>Vous pouvez aussi <a href="[BLACKLISTURL]">interdire</a> tout nouvel envoi depuis notre serveur de newsletter.</p>
++</div>  ',
+         'description' => s('Footer used when a message has been forwarded'),
+         'type'        => 'textarea',
+         'allowempty'  => 0,

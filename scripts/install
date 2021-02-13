@@ -27,9 +27,11 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
+password=$YNH_APP_ARG_PASSWORD
+adminmail=$YNH_APP_ARG_EMAIL
+orga=$YNH_APP_ARG_ORGANISATION
 is_public=$YNH_APP_ARG_IS_PUBLIC
 language=$YNH_APP_ARG_LANGUAGE
-password=$YNH_APP_ARG_PASSWORD
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -42,6 +44,7 @@ password=$YNH_APP_ARG_PASSWORD
 ### guaranteed to be unique. This is a good unique identifier to define installation path,
 ### db names...
 app=$YNH_APP_INSTANCE_NAME
+app_nb=$YNH_APP_INSTANCE_NUMBER
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -71,8 +74,12 @@ ynh_script_progression --message="Storing installation settings..." --time --wei
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
+ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 ynh_app_setting_set --app=$app --key=admin --value=$admin
+ynh_app_setting_set --app=$app --key=admin_mail_html --value=$adminmail
+ynh_app_setting_set --app=$app --key=org --value=$orga
 ynh_app_setting_set --app=$app --key=language --value=$language
+ynh_app_setting_set --app=$app --key=test_mode --value=1
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -85,18 +92,6 @@ ynh_script_progression --message="Finding an available port..." --time --weight=
 ### `ynh_find_port` will find the first available port starting from the given port.
 ### If you're not using these lines:
 ###		- Remove the section "CLOSE A PORT" in the remove script
-
-# Find an available port
-port=$(ynh_find_port --port=8095)
-ynh_app_setting_set --app=$app --key=port --value=$port
-
-# Optional: Expose this port publicly
-# (N.B.: you only need to do this if the app actually needs to expose the port publicly.
-# If you do this and the app doesn't actually need you are CREATING SECURITY HOLES IN THE SERVER !)
-
-# Open the port
-# ynh_script_progression --message="Configuring firewall..." --time --weight=1
-# ynh_exec_warn_less yunohost firewall allow --no-upnp TCP $port
 
 #=================================================
 # INSTALL DEPENDENCIES
@@ -143,7 +138,21 @@ ynh_script_progression --message="Setting up source files..." --time --weight=1
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$final_path"
+
+unpackdir="/tmp/phplist_src"
+if [ -d $unpackdir ]
+then
+    ynh_secure_remove $unpackdir
+fi 
+mkdir $unpackdir
+ynh_setup_source --dest_dir=$unpackdir
+
+mkdir -p "$final_path"
+
+# Copy files to the right place
+cp -R "$unpackdir/public_html/lists" "$final_path/"
+
+ynh_secure_remove $unpackdir
 
 #=================================================
 # NGINX CONFIGURATION
@@ -161,7 +170,7 @@ ynh_add_nginx_config
 ynh_script_progression --message="Configuring system user..." --time --weight=1
 
 # Create a system user
-ynh_system_user_create --username=$app
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -180,7 +189,7 @@ ynh_script_progression --message="Configuring PHP-FPM..." --time --weight=1
 ###		- And the section "PHP-FPM CONFIGURATION" in the upgrade script
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config
+ynh_add_fpm_config --usage=low --footprint=low ;  #values OK?
 
 #=================================================
 # SPECIFIC SETUP
@@ -205,7 +214,52 @@ ynh_script_progression --message="Configuring a systemd service..." --time --wei
 ###		- And the section "SETUP SYSTEMD" in the upgrade script
 
 # Create a dedicated systemd config
-ynh_add_systemd_config
+#ynh_add_systemd_config
+
+#=================================================
+# MODIFY A CONFIG FILE # Needs be done before SETUP APPLICATION WITH CURL
+#=================================================
+
+### `ynh_replace_string` is used to replace a string in a file.
+### (It's compatible with sed regular expressions syntax)
+
+# use extended config file
+
+mv "$final_path/lists/config/config.php" "$final_path/lists/config/config_short.php"
+mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
+
+# adjust $pageroot = $path_url
+# from phplist :
+# Warning: Do not change this after installation. You can only change this before you install and initialise phpList.
+# If you install phpList in the document root then the value should be an empty string, not '/'.
+if [ "$path_url" = "/" ] ; then
+  ynh_replace_string --match_string="\$pageroot = '/lists';" --replace_string="\$pageroot = '';" --target_file="$final_path/lists/config/config.php"
+else
+  ynh_replace_string --match_string="\$pageroot = '/lists';" --replace_string="\$pageroot = '$path_url';" --target_file="$final_path/lists/config/config.php"
+fi
+
+ynh_replace_string --match_string="dbhost" --replace_string="localhost" --target_file="$final_path/lists/config/config.php"
+ynh_replace_string --match_string="phplistdb" --replace_string="${db_name}" --target_file="$final_path/lists/config/config.php"
+ynh_replace_string --match_string="\$database_user = 'phplist';" --replace_string="\$database_user = '${db_user}';" --target_file="$final_path/lists/config/config.php"
+ynh_replace_string --match_string="\$database_password = 'phplist';" --replace_string="\$database_password = '${db_pwd}';" --target_file="$final_path/lists/config/config.php"
+
+if [ "$language" != "en" ]; then
+  ynh_replace_string --match_string="\$default_system_language = 'en';" --replace_string="\$default_system_language = '$language';" --target_file="$final_path/lists/config/config.php"
+fi 
+
+if [ "$language" = "fr" ]; then
+  ynh_replace_string --match_string="\$language_module = 'english.inc';" --replace_string="\$language_module = 'french.inc';" --target_file="$final_path/lists/config/config.php"
+  #fix many untranslated texts
+  patch -i /$YNH_CWD/../sources/patches/defaultconfig-fr.diff $final_path/lists/admin/defaultconfig.php 
+fi 
+
+#toggle test mode off (enable sending) -use actions instead
+#ynh_replace_string --match_string="(\"TEST\",1)" --replace_string="(\"TEST\",0)" --target_file="$final_path/lists/config/config.php"
+
+#disable tracking by default
+ynh_replace_string --match_string="// define('ALWAYS_ADD_USERTRACK',0);" --replace_string="define('ALWAYS_ADD_USERTRACK',0);" --target_file="$final_path/lists/config/config.php"
+ynh_replace_string --match_string="define('CLICKTRACK', 1);" --replace_string="define('CLICKTRACK', 0);" --target_file="$final_path/lists/config/config.php"
+
 
 #=================================================
 # SETUP APPLICATION WITH CURL
@@ -231,19 +285,10 @@ ynh_systemd_action --service_name=nginx --action=reload
 
 # Installation with curl
 ynh_script_progression --message="Finalizing installation..." --time --weight=1
-ynh_local_curl "/INSTALL_PATH" "key1=value1" "key2=value2" "key3=value3"
+ynh_local_curl "admin/?firstinstall=1&page=initialise&adminname=${admin}&orgname=${orga}&adminpassword=${password}&adminemail=${adminmail}"
 
 # Remove the public access
 ynh_permission_update --permission="main" --remove="visitors"
-
-#=================================================
-# MODIFY A CONFIG FILE
-#=================================================
-
-### `ynh_replace_string` is used to replace a string in a file.
-### (It's compatible with sed regular expressions syntax)
-
-ynh_replace_string --match_string="match_string" --replace_string="replace_string" --target_file="$final_path/CONFIG_FILE"
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
@@ -254,7 +299,7 @@ ynh_replace_string --match_string="match_string" --replace_string="replace_strin
 ### you can make a backup of this file before modifying it again if the admin had modified it.
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum --file="$final_path/CONFIG_FILE"
+ynh_store_file_checksum --file="$final_path/lists/config/config.php"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -268,6 +313,8 @@ ynh_store_file_checksum --file="$final_path/CONFIG_FILE"
 
 # Set permissions to app files
 chown -R root: $final_path
+# for enabling plugins installation
+chown -R $app: "$final_path/lists/admin/plugins"
 
 #=================================================
 # SETUP LOGROTATE
@@ -299,24 +346,6 @@ ynh_script_progression --message="Integrating service in YunoHost..." --time --w
 ###		- As well as the section "INTEGRATE SERVICE IN YUNOHOST" in the restore script
 ###		- And the section "INTEGRATE SERVICE IN YUNOHOST" in the upgrade script
 
-yunohost service add $app --description="A short description of the app" --log="/var/log/$app/$app.log"
-
-### Additional options starting with 3.8:
-###
-### --needs_exposed_ports "$port" a list of ports that needs to be publicly exposed
-###                               which will then be checked by YunoHost's diagnosis system
-###                               (N.B. DO NOT USE THIS is the port is only internal!!!)
-###
-### --test_status "some command"  a custom command to check the status of the service
-###                               (only relevant if 'systemctl status' doesn't do a good job)
-###
-### --test_conf "some command"    some command similar to "nginx -t" that validates the conf of the service
-###
-### Re-calling 'yunohost service add' during the upgrade script is the right way
-### to proceed if you later realize that you need to enable some flags that
-### weren't enabled on old installs (be careful it'll override the existing
-### service though so you should re-provide all relevant flags when doing so)
-
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
@@ -330,16 +359,13 @@ ynh_script_progression --message="Starting a systemd service..." --time --weight
 ###		- As well as the section"STOP SYSTEMD SERVICE" and "START SYSTEMD SERVICE" in the upgrade script
 ###		- And the section "STOP SYSTEMD SERVICE" and "START SYSTEMD SERVICE" in the change_url script
 
-# Start a systemd service
-ynh_systemd_action --service_name=$app --action="start" --log_path="/var/log/$app/$app.log"
-
 #=================================================
 # SETUP FAIL2BAN
 #=================================================
 ynh_script_progression --message="Configuring Fail2Ban..." --time --weight=1
 
 # Create a dedicated Fail2Ban config
-ynh_add_fail2ban_config --logpath="/var/log/nginx/${domain}-error.log" --failregex="Regex to match into the log for a failed login"
+#ynh_add_fail2ban_config --logpath="/var/log/nginx/${domain}-error.log" --failregex="Regex to match into the log for a failed login"
 
 #=================================================
 # SETUP SSOWAT

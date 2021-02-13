@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source scripts/_common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# RETRIEVE ARGUMENTS
+#=================================================
+
+app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
+
+test_mode=${YNH_ACTION_TEST_MODE} 
+
+#=================================================
+# CHECK IF ARGUMENTS ARE CORRECT
+#=================================================
+
+#=================================================
+# CHECK IF AN ACTION HAS TO BE DONE
+#=================================================
+
+test_mode_old=$(ynh_app_setting_get --app=$app --key=test_mode)
+
+if [ $test_mode -eq $test_mode_old ]
+then
+    ynh_die --message="test_mode is already set as $test_mode." --ret_code=0
+fi
+
+#=================================================
+# SPECIFIC ACTION
+#=================================================
+# MOVE TO PUBLIC OR PRIVATE
+#=================================================
+ynh_script_progression --message="Toggling test_mode..." --weight=1
+
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+if [ $test_mode -eq 1 ]
+then
+    ynh_replace_string --match_string="('TEST', 0)" --replace_string="('TEST', 1)" --target_file="$final_path/lists/config/config.php"
+else
+    ynh_replace_string --match_string="('TEST', 1)" --replace_string="('TEST', 0)" --target_file="$final_path/lists/config/config.php"
+fi
+
+# Update the config of the app
+ynh_app_setting_set --app=$app --key=test_mode --value=$test_mode
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Execution completed" --last
