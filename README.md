@@ -20,14 +20,15 @@ Phplist manages sending emails to lists. The lists can be uploaded but user can 
 Once installed, go to the chosen URL and log in as admin with the password you enter upon configuring.
 
 ### Demo mode
-Immediatly after setup, Phplist runs in test mode, not sending emails. This not a bug : before real use, a lot of stuff need to be configured right and need testing (otherwise you would soon become flagged as a spammer). For being able to send emails, for the moment one needs to manually edit /var/www/phplist/lists/config/config.php (assuming default install path). I will try to add an action in a control-panel.
+Immediatly after setup, Phplist runs in test mode, not sending emails. This not a bug : before real use, a lot of stuff need to be configured right and need testing (otherwise you would soon become flagged as a spammer). 
+
 Once configured and dry-run tested, the demo mode can be turned off by using the (experimental) config-panel of our app.
 To reach this confi-panel, go to your Yunohost admin panel, navigate to your Phplist install and append /config-panel to the path, eg:
 https://mydomain.tld/yunohost/admin/#/apps/phplist/config-panel 
 
 ## Documentation
-This installer was derived from yunohost's template app [example](https://github.com/YunoHost/example_ynh)
-with small bits taken from [my_webapp_ynh](https://github.com/YunoHost-Apps/my_webapp_ynh) ([documentation](https://github.com/YunoHost/doc/blob/master/app_my_webapp.md)). I mostly stripped the SFTP stuff and adapted for Phplist.
+This installer was derived from yunohost's [template app](https://github.com/YunoHost/example_ynh)
+with small bits (config-panel and actions) taken from [my_webapp_ynh](https://github.com/YunoHost-Apps/my_webapp_ynh) ([documentation](https://github.com/YunoHost/doc/blob/master/app_my_webapp.md)).
 
 [Phplist documentation](https://www.phplist.org/)
 
