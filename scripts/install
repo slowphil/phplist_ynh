@@ -227,6 +227,7 @@ ynh_script_progression --message="Configuring a systemd service..." --time --wei
 
 mv "$final_path/lists/config/config.php" "$final_path/lists/config/config_short.php"
 mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
+echo "\$plugins_autoenable = array('YunoSSOPlugin');" >> "$final_path/lists/config/config.php"
 
 # adjust $pageroot = $path_url
 # from phplist :
@@ -286,7 +287,6 @@ ynh_systemd_action --service_name=nginx --action=reload
 # Installation with curl
 ynh_script_progression --message="Finalizing installation..." --time --weight=1
 ynh_local_curl "admin/?firstinstall=1&page=initialise&adminname=${admin}&orgname=${orga}&adminpassword=${password}&adminemail=${adminmail}"
-ynh_local_curl "admin/?page=plugins&enable=YunoSSOPlugin"
 
 # Remove the public access
 ynh_permission_update --permission="main" --remove="visitors"
