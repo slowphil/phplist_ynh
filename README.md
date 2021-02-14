@@ -36,15 +36,16 @@ with small bits (config-panel and actions) taken from [my_webapp_ynh](https://gi
 
 #### Multi-user support
 
-Are LDAP and HTTP auth supported? No, SSO not implemented at this point (help welcome)
-Can the app be used by multiple users? yes, provided the admin adds them in.
+Are LDAP and HTTP auth supported? HTTP auth mostly working, needs tweaking
+Can the app be used by multiple users? The app is meant to be publicly visible (visitors can access it) so that people can subscribe to your lists 
+All users that are given the phplist admin permission (same as the admin user declared at install) are considered superusers in phplist 
 
 #### Supported architectures
 
 ## Limitations
 Fail2ban not configured yet
-SSO not implemented
 Contact me if you know how to do that.
+SSO mostly working, maybe a bit rough presently. Authorized users should be automatically forwarded to the admin page.   
 
 ## Additional information
 
