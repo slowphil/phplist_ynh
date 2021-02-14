@@ -61,6 +61,12 @@ class YunoSSOPlugin extends phplistPlugin
         
         global $tables;
 
+        //~ file_put_contents('/tmp/mySSOdebug.log', 'Starting activate', FILE_APPEND);
+        //~ var_dump($_SESSION['adminloggedin']);
+        //~ file_put_contents('/tmp/mySSOdebug.log', print_r($_SESSION['adminloggedin']), FILE_APPEND);
+        //~ var_dump($_SERVER['REMOTE_USER']);
+        //~ file_put_contents('/tmp/mySSOdebug.log', print_r($_SERVER['REMOTE_USER']), FILE_APPEND);
+        
         if (!empty($_SESSION['adminloggedin'])) {
             return;
         }
@@ -74,21 +80,33 @@ class YunoSSOPlugin extends phplistPlugin
             //~ }
         //~ }
         
-        
-        //~ if (isset($_SERVER["HTTP_AUTHORIZATION"]) && 0 === stripos($_SERVER["HTTP_AUTHORIZATION"], 'basic ')) {
-            //~ $exploded = explode(':', base64_decode(substr($_SERVER["HTTP_AUTHORIZATION"], 6)), 2);
-            //~ if (2 == \count($exploded)) {
-                //~ list($un, $pw) = $exploded;
-            //~ }
-        //~ }
-        //~ $password = password_hash($pw, PASSWORD_DEFAULT);
+        //on first entry 
+        // ["SERVER_NAME"]==["HTTP_HOST"]=> "mydomain.tld"
+        // ["DOCUMENT_URI"]=> "/$approotpath/index.php"
+        // ["REQUEST_URI"]=> "/$approotpath/" 
+        // ["SCRIPT_NAME"]=> "/$approotpath/index.php" 
+        // ["PHP_SELF"]=> "/$approotpath/index.php"
+        // ["HTTP_REFERER"] => page of SSO "https://mydomain.tld/yunohost/sso"
 
+        
+        $authuser = $_SERVER['REMOTE_USER'];
+        // also  ["HTTP_REMOTE_USER"]
+        //  ["HTTP_AUTH_USER"]
+        //  ["PHP_AUTH_USER"]
+        $authpw = $_SERVER['PHP_AUTH_PW'];
+        $authmail = $_SERVER['HTTP_EMAIL'];
+        //~ file_put_contents('/tmp/mySSOdebug.log', '\nautheticated user :', FILE_APPEND);
+        //~ file_put_contents('/tmp/mySSOdebug.log', var_dump($authuser), FILE_APPEND);
+        //~ file_put_contents('/tmp/mySSOdebug.log', '\npw :', FILE_APPEND);
+        //~ file_put_contents('/tmp/mySSOdebug.log', var_dump($authpw), FILE_APPEND);
+        //~ file_put_contents('/tmp/mySSOdebug.log', '\nmail :', FILE_APPEND);
+        //~ file_put_contents('/tmp/mySSOdebug.log', var_dump($authmail), FILE_APPEND);
+        
+        
         // permissions are set in Yunohost, all identified users are considered super
         $superuser=1;
-        // if we want mail, need to get it from ldap...
-        $mail="";
 
-        if (!empty($_SERVER['REMOTE_USER'])) {
+        if (!empty($authuser)) {
             $row = Sql_Fetch_Row_Query(
                 //~ sprintf(
                     //~ "SELECT id, password, superuser, privileges
@@ -99,9 +117,10 @@ class YunoSSOPlugin extends phplistPlugin
                     "SELECT id, privileges
                     FROM {$tables['admin']}
                     WHERE loginname = '%s'",
-                    sql_escape($_SERVER['REMOTE_USER'])
+                    sql_escape($authuser)
                 )
             );
+        //~ file_put_contents('/tmp/mySSOdebug.log', var_dump($row), FILE_APPEND);
 
             if ($row) {
                 //~ list($id, $password, $superuser, $privileges) = $row;
@@ -114,55 +133,66 @@ class YunoSSOPlugin extends phplistPlugin
                     superuser = %s,
                     disabled = 0
                     WHERE id=%s",
-                    sql_escape($mail),
+                    sql_escape($authmail),
                     $superuser,
                     $id
                   )
                 );
             
                 if (!$update) {
+        //~ file_put_contents('/tmp/mySSOdebug.log', '\nfailded updating admin db :', FILE_APPEND);
                   die(Fatal_Error(s("Fail to update user informations in database : %s",Sql_Error())));
                 }
-                else {
+              
+            }
+            else {
                   $insert = Sql_Query(
                     sprintf(
                       "INSERT INTO {$tables['admin']}
                       (loginname,email,superuser,disabled)
                       VALUES
                       ('%s','%s',%s,0)",
-                      sql_escape($login),
-                      sql_escape($mail),
+                      sql_escape($authuser),
+                      sql_escape($authmail),
                       $superuser
                     )
                   );
                   if (!$insert) {
-                    die(Fatal_Error(s("Fail to create user in database : %s",Sql_Error())));
+        //~ file_put_contents('/tmp/mySSOdebug.log', '\nfailded inserting new admin in db :', FILE_APPEND);
+                     die(Fatal_Error(s("Fail to create user in database : %s",Sql_Error())));
                   }
               
                   $id = Sql_Insert_Id();
-                }
-
-                $_SESSION['adminloggedin'] = $_SERVER['REMOTE_ADDR'];
-                $_SESSION['logindetails'] = array(
-                    'adminname' => $_SERVER['REMOTE_USER'],
-                    'id' => $id,
-                    'superuser' => $superuser,
-                    //~ 'passhash' => $password,
-                );
-
-                if ($privileges) {
-                    $_SESSION['privileges'] = unserialize($privileges);
-                }
             }
+
+            $_SESSION['adminloggedin'] = $_SERVER['REMOTE_ADDR'];
+            $_SESSION['logindetails'] = array(
+                'adminname' => $authuser,
+                'id' => $id,
+                'superuser' => $superuser,
+                //~ 'passhash' => $password,
+            );
+
+            if ($privileges) {
+                $_SESSION['privileges'] = unserialize($privileges);
+            }
+            
+            //since we authenticate jump to admin page
+            $uritail = substr($_SERVER["HTTP_REFERER"], -6, 5);
+            if ($uritail !== "admin") {
+            header( "Location: admin/" );
+            exit;
+            }
+          
         }
     }
 
     //When user logs out redirect them to the webaccess logout page and then back to here.
     public function logout()
     {
-        if (empty($_SERVER['REMOTE_USER'])) {
-            return;
-        }
+        //~ if (empty($_SERVER['REMOTE_USER'])) {
+            //~ return;
+        //~ }
         // this is set in the settings page of phplist: lists/admin/?page=configure under the cosign section
         $cosignLogout = getConfig('yunosso_logout');
 
@@ -185,12 +215,11 @@ class YunoSSOPlugin extends phplistPlugin
         //reroute the app to the proper cosign logout url
         //this is set from above and using the getConfig(); function to retrieve it
         //from lists/admin/?page=configure
-        $url = "?http://" . $_SERVER['HTTP_HOST'];
-        header( "Location: $cosignLogout$url" );
+        $url = "http://" . $_SERVER['HTTP_HOST'];
+        //header( "Location: $cosignLogout" );
+        header( "Location: " . $url . "/yunohost/" );
 
         //if you don't exit you will not... exit :)
         exit();
     }
 }
-
-

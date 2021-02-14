@@ -6,7 +6,7 @@
         "en": "Manages your newletters & subscribers lists",
         "fr": "Gère vos newsletters et listes d'abonnés"
     },
-    "version": "3.6.0~ynh0",
+    "version": "3.6.1~ynh0",
     "url": "https://github.com/phpList/phplist3",
     "license": "AGPL-V3",
     "maintainer": {

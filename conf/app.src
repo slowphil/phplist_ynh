@@ -1,5 +1,5 @@
-SOURCE_URL=https://sourceforge.net/projects/phplist/files/phplist/3.6.0/phplist-3.6.0.tgz
-SOURCE_SUM=f43da160ef92f9f0224bfde1f4b30130b90c0bb58015c018db50b76edb4210ed
+SOURCE_URL=https://sourceforge.net/projects/phplist/files/phplist/3.6.1/phplist-3.6.1.tgz
+SOURCE_SUM=0674d2ce0ad8c72b87ebfbeefa1fb5bc443eb0020f74ef421cecd94433ebdea7
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
