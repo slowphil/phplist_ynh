@@ -2,7 +2,8 @@
 /**
  * CaptchaPlugin for phplist.
  *
- * This file is a part of CaptchaPlugin.
+ * This file is a part of CaptchaPlugin. 
+ * https://github.com/bramley/phplist-plugin-captcha
  *
  * @category  phplist
  *
