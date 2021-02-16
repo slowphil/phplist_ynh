@@ -34,13 +34,6 @@ class YunoSSOPlugin extends phplistPlugin
 
     // these 2 settings create fields on lists/admin/?page=configure under the cosign section
     public $settings = array(
-        //~ 'cosign_realm' => array(
-            //~ 'description' => 'Cosign required realm (leave empty to not validate)',
-            //~ 'type' => 'text',
-            //~ 'value' => '',
-            //~ 'allowempty' => true,
-            //~ 'category'=> 'Cosign',
-        //~ ),
         'yunosso_logout' => array(
             'description' => 'the url where to go at logout',
             'type' => 'text',
@@ -54,6 +47,71 @@ class YunoSSOPlugin extends phplistPlugin
     {
         parent::__construct();
     }
+    
+  /**
+   * Performs LDAP authentication.  Returns
+   * array(value_of_uidAttr, "OK", full_ldap_entry_for_target_user)
+   * on success, or array(0, "ERROR MESSAGE DESCRIBING WHAT HAPPENED") on
+   * failure. This function checks for LDAP authentication by first binding
+   * as a different user, searching to find a "target DN" (the DN
+   * that corresponds to the end user's login) and then rebinding
+   * with that.
+   */
+  function checkLdapAuth($user, $app) {
+    $aLdapUrl = "localhost";  // the url used to connect to the LDAP server
+    $aBaseDn = "dc=yunohost,dc=org";  // the base of where to search for the actual target user
+    $aFilter = "(&(uid= " . $user . 
+      ")(objectClass=posixAccount)(permission=cn=" . $app . 
+      ".admin,ou=permission,dc=yunohost,dc=org))";  // the search filter to find the target user's DN
+    var_dump($aFilter);
+    // cover all cases
+    $myResult = array(0, "Unknown error");
+
+    // connect to the LDAP server
+    $myLdapConn = ldap_connect($aLdapUrl);
+    var_dump($myLdapConn);
+    // specify LDAP version protocol
+    ldap_set_option($myLdapConn,LDAP_OPT_PROTOCOL_VERSION,3);
+    
+    // Enable LDAP recursive search using root DN.
+    ldap_set_option($myLdapConn, LDAP_OPT_REFERRALS, 0);
+    
+
+    // if the connection succeeded
+    if ($myLdapConn) {
+      // do an LDAP bind
+      // bind anonymously
+      $myBindResult = ldap_bind($myLdapConn);
+      // check to see if bind failed
+      if (!$myBindResult) {
+        $myResult = array(0, 'Bind to LDAP server failed');
+      }
+      // bind was fine, keep going
+      else {
+        // search for the user in question
+        $myLdapSearchResult = ldap_search($myLdapConn, $aBaseDn, $aFilter);
+        var_dump($myLdapSearchResult);
+        if (!$myLdapSearchResult) {
+          $myResult = array(0, 'User not found');
+        }
+        // if user was found, try to bind again as that user
+        else {
+          $myResult = array(1, 'User has permission');
+        }
+      }
+      // cleanup the connection
+      ldap_close($myLdapConn);
+    }
+    // connection failure
+    else {
+      $myResult = array(0, 'Connect failed');
+    }
+    echo "result before returning";
+    echo "myResult = " . $myResult[0] . ", " . $myResult[1];
+
+    return $myResult;
+
+  }
 
     public function activate()
     {
@@ -61,58 +119,40 @@ class YunoSSOPlugin extends phplistPlugin
         
         global $tables;
 
-        //~ file_put_contents('/tmp/mySSOdebug.log', 'Starting activate', FILE_APPEND);
-        //~ var_dump($_SESSION['adminloggedin']);
-        //~ file_put_contents('/tmp/mySSOdebug.log', print_r($_SESSION['adminloggedin']), FILE_APPEND);
-        //~ var_dump($_SERVER['REMOTE_USER']);
-        //~ file_put_contents('/tmp/mySSOdebug.log', print_r($_SERVER['REMOTE_USER']), FILE_APPEND);
-        
         if (!empty($_SESSION['adminloggedin'])) {
             return;
         }
 
-        //set in lists/admin/?page=configure under the cosign section
-        //~ $requiredRealm = getConfig('cosign_realm');
-
-        //~ if ($requiredRealm) {
-            //~ if (!(isset($_SERVER['REMOTE_REALM']) && $requiredRealm == $_SERVER['REMOTE_REALM'])) {
-                //~ return;
-            //~ }
-        //~ }
-        
         //on first entry 
+        $Yunohost_app_name = $_SERVER['USER'];
         // ["SERVER_NAME"]==["HTTP_HOST"]=> "mydomain.tld"
-        // ["DOCUMENT_URI"]=> "/$approotpath/index.php"
+        // ["DOCUMENT_URI"]==["SCRIPT_NAME"]==["PHP_SELF"]=> "/$approotpath/index.php"
         // ["REQUEST_URI"]=> "/$approotpath/" 
-        // ["SCRIPT_NAME"]=> "/$approotpath/index.php" 
-        // ["PHP_SELF"]=> "/$approotpath/index.php"
         // ["HTTP_REFERER"] => page of SSO "https://mydomain.tld/yunohost/sso"
-
         
         $authuser = $_SERVER['REMOTE_USER'];
-        // also  ["HTTP_REMOTE_USER"]
-        //  ["HTTP_AUTH_USER"]
-        //  ["PHP_AUTH_USER"]
-        $authpw = $_SERVER['PHP_AUTH_PW'];
-        $authmail = $_SERVER['HTTP_EMAIL'];
-        //~ file_put_contents('/tmp/mySSOdebug.log', '\nautheticated user :', FILE_APPEND);
-        //~ file_put_contents('/tmp/mySSOdebug.log', var_dump($authuser), FILE_APPEND);
-        //~ file_put_contents('/tmp/mySSOdebug.log', '\npw :', FILE_APPEND);
-        //~ file_put_contents('/tmp/mySSOdebug.log', var_dump($authpw), FILE_APPEND);
-        //~ file_put_contents('/tmp/mySSOdebug.log', '\nmail :', FILE_APPEND);
-        //~ file_put_contents('/tmp/mySSOdebug.log', var_dump($authmail), FILE_APPEND);
-        
-        
-        // permissions are set in Yunohost, all identified users are considered super
-        $superuser=1;
+        // also  ["HTTP_REMOTE_USER"] , ["HTTP_AUTH_USER"] , ["PHP_AUTH_USER"]
+        $authpw = $_SERVER['PHP_AUTH_PW']; //not needed actually
+        $authmail = $_SERVER['HTTP_EMAIL']; //save it in db; Useful?
 
-        if (!empty($authuser)) {
+        //~ var_dump($authuser);
+        //~ var_dump($authpw);
+        //~ var_dump($authmail);
+
+        if (empty($authuser)) return;
+        
+        $user_has_permission = $this->checkLdapAuth($authuser, $Yunohost_app_name);
+
+        var_dump($user_has_permission);
+        
+        if ( $user_has_permission[0] == 0 ) {
+          return;
+        }
+        else { // permissions are granted in Yunohost, identified user is considered super
+          $superuser=1;
+
+
             $row = Sql_Fetch_Row_Query(
-                //~ sprintf(
-                    //~ "SELECT id, password, superuser, privileges
-                    //~ FROM {$tables['admin']}
-                    //~ WHERE loginname = '%s'
-                    //~ AND disabled = 0",
                   sprintf(
                     "SELECT id, privileges
                     FROM {$tables['admin']}
@@ -120,10 +160,9 @@ class YunoSSOPlugin extends phplistPlugin
                     sql_escape($authuser)
                 )
             );
-        //~ file_put_contents('/tmp/mySSOdebug.log', var_dump($row), FILE_APPEND);
+            //~ var_dump($row);
 
             if ($row) {
-                //~ list($id, $password, $superuser, $privileges) = $row;
                 list($id, $privileges) = $row;
 
                 $update = Sql_Query(
@@ -140,7 +179,6 @@ class YunoSSOPlugin extends phplistPlugin
                 );
             
                 if (!$update) {
-        //~ file_put_contents('/tmp/mySSOdebug.log', '\nfailded updating admin db :', FILE_APPEND);
                   die(Fatal_Error(s("Fail to update user informations in database : %s",Sql_Error())));
                 }
               
@@ -158,7 +196,6 @@ class YunoSSOPlugin extends phplistPlugin
                     )
                   );
                   if (!$insert) {
-        //~ file_put_contents('/tmp/mySSOdebug.log', '\nfailded inserting new admin in db :', FILE_APPEND);
                      die(Fatal_Error(s("Fail to create user in database : %s",Sql_Error())));
                   }
               
@@ -190,19 +227,8 @@ class YunoSSOPlugin extends phplistPlugin
     //When user logs out redirect them to the webaccess logout page and then back to here.
     public function logout()
     {
-        //~ if (empty($_SERVER['REMOTE_USER'])) {
-            //~ return;
-        //~ }
-        // this is set in the settings page of phplist: lists/admin/?page=configure under the cosign section
+       // this is set in the settings page of phplist: lists/admin/?page=configure under the cosign section
         $cosignLogout = getConfig('yunosso_logout');
-
-        //If you don't clear the local session cookie and only redirect the browser to the CoSign logout
-        //URL, the CoSign session will still be logged out, but the local session will still be valid for
-        //about a minute because the CoSign filter caches the credentials.
-        //~ if (isset($_SERVER['COSIGN_SERVICE'])) {
-            //~ $service_name = $_SERVER['COSIGN_SERVICE'];
-            //~ setcookie( $service_name , "null", time()-1, '/', "", 1 );
-        //~ }
 
         //remove server vars on logout as well.
         $_SERVER['REMOTE_USER'] = "";
@@ -222,4 +248,7 @@ class YunoSSOPlugin extends phplistPlugin
         //if you don't exit you will not... exit :)
         exit();
     }
+
 }
+
+
