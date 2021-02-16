@@ -227,12 +227,7 @@ ynh_script_progression --message="Configuring a systemd service..." --time --wei
 
 mv "$final_path/lists/config/config.php" "$final_path/lists/config/config_short.php"
 mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
-echo "\$plugins_autoenable = array('YunoSSOPlugin',
- 'CaptchaPlugin',
- 'CommonPlugin',
- 'inviteplugin',
- 'SegmentPlugin',
- 'subjectLinePlaceholdersPlugin');" >> "$final_path/lists/config/config.php"
+echo "\$plugins_autoenable = array('YunoSSOPlugin', 'CommonPlugin', 'CaptchaPlugin');" >> "$final_path/lists/config/config.php"
 
 # adjust $pageroot = $path_url
 # from phplist :
