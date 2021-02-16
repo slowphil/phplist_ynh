@@ -92,11 +92,16 @@ class YunoSSOPlugin extends phplistPlugin
       else {
         // search for the user in question
         $myLdapSearchResult = ldap_search($myLdapConn, $aBaseDn, $aFilter);
-        // var_dump($myLdapSearchResult);
-        if (!$myLdapSearchResult) {
+        $data = ldap_get_entries($myLdapConn, $myLdapSearchResult);
+        $found = $data['count'];
+        //echo '<h1>Dump all data</h1><pre>';
+        //var_dump($data);   
+        //echo '</pre>';
+        //exit();
+        if ( $found != 1) { //should never be more than one, though
           $myResult = array(0, 'User not found');
         }
-        // if user was found, try to bind again as that user
+        // 1 user was found, that's it
         else {
           $myResult = array(1, 'User has permission');
         }
@@ -108,8 +113,8 @@ class YunoSSOPlugin extends phplistPlugin
     else {
       $myResult = array(0, 'Connect failed');
     }
-    echo "result before returning";
-    echo "myResult = " . $myResult[0] . ", " . $myResult[1];
+    //echo "result before returning";
+    //echo "myResult = " . $myResult[0] . ", " . $myResult[1];
 
     return $myResult;
 
@@ -145,7 +150,7 @@ class YunoSSOPlugin extends phplistPlugin
         
         $user_has_permission = $this->checkLdapAuth($authuser, $Yunohost_app_name);
 
-        // var_dump($user_has_permission);
+        //var_dump($user_has_permission);
         
         if ( $user_has_permission[0] == 0 ) {
           return;
@@ -252,5 +257,3 @@ class YunoSSOPlugin extends phplistPlugin
     }
 
 }
-
-
