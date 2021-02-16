@@ -27,7 +27,7 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
-password=$YNH_APP_ARG_PASSWORD
+#password=$YNH_APP_ARG_PASSWORD
 adminmail=$YNH_APP_ARG_EMAIL
 orga=$YNH_APP_ARG_ORGANISATION
 is_public=$YNH_APP_ARG_IS_PUBLIC
@@ -284,9 +284,12 @@ yunohost app ssowatconf
 # Reload NGINX
 ynh_systemd_action --service_name=nginx --action=reload
 
+# random password for default "admin" user
+# that admin can be suppressed/disabled once SSO lets us in
+password = $(ynh_string_random --length=12)
 # Installation with curl
 ynh_script_progression --message="Finalizing installation..." --time --weight=1
-ynh_local_curl "admin/?firstinstall=1&page=initialise&adminname=${admin}&orgname=${orga}&adminpassword=${password}&adminemail=${adminmail}"
+ynh_local_curl "admin/?firstinstall=1&page=initialise&adminname=${admin}&orgname=${orga}&adminpassword=${password}&adminemail=none"
 
 # Remove the public access
 ynh_permission_update --permission="main" --remove="visitors"

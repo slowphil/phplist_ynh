@@ -83,28 +83,6 @@
                     "fr": "Choisissez l'utilisateur qui peut accéder à la page /admin de Phplist"
                 },
                 "example": "johndoe"
-            }, 
-            {
-                "name": "password",
-                "type": "password",
-                "ask": {
-                    "en": "Set the administrator password",
-                    "fr": "Définissez le mot de passe administrateur"
-                },
-                "help": {
-                    "en": "administrator password for Phplist's /admin page (initial login: admin)" ,
-                    "fr": "Mot de passe d'administrateur pour la page /admin  de Phplist (login initial: admin)"
-                },
-                "example": "Choose a password"
-            },
-            {
-                "name": "email",
-                "type": "string",
-                "ask": {
-                    "en": "The email address of the administrator",
-                    "fr": "L'adresse mail de l'administrateur"
-                },
-                "example": "johndoe@mydomain.tld"
             }
         ]
     }
