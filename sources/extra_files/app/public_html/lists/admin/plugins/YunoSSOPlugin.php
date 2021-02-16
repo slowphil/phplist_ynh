@@ -32,7 +32,8 @@ class YunoSSOPlugin extends phplistPlugin
     public $enabled = 1;
     public $version = '1.0';
 
-    // these 2 settings create fields on lists/admin/?page=configure under the cosign section
+    // create field(s) on lists/admin/?page=configure under the Yunohost section
+    // if needed
     public $settings = array(
         'yunosso_logout' => array(
             'description' => 'the url where to go at logout',
@@ -49,13 +50,15 @@ class YunoSSOPlugin extends phplistPlugin
     }
     
   /**
-   * Performs LDAP authentication.  Returns
-   * array(value_of_uidAttr, "OK", full_ldap_entry_for_target_user)
-   * on success, or array(0, "ERROR MESSAGE DESCRIBING WHAT HAPPENED") on
-   * failure. This function checks for LDAP authentication by first binding
-   * as a different user, searching to find a "target DN" (the DN
-   * that corresponds to the end user's login) and then rebinding
-   * with that.
+   * Checks if the user has the admin permission for phpList
+   * in yunohost's LDAP
+   * Returns array(0, "ERROR MESSAGE DESCRIBING WHAT HAPPENED") on
+   * failure, or array(1, 'User has permission'); on success
+   * This function checks for LDAP authentication by binding
+   * anonymously to LDAP and performing a seach.
+   * 
+   * Code from https://github.com/phpList/phplist-plugin-ldap/blob/4d3383eda1cc44f0fab724f4645acfe2770f3fe7/plugins/ldapAuth.php#L293
+   * simplified and adapted 
    */
   function checkLdapAuth($user, $app) {
     $aLdapUrl = "localhost";  // the url used to connect to the LDAP server
@@ -63,13 +66,13 @@ class YunoSSOPlugin extends phplistPlugin
     $aFilter = "(&(uid= " . $user . 
       ")(objectClass=posixAccount)(permission=cn=" . $app . 
       ".admin,ou=permission,dc=yunohost,dc=org))";  // the search filter to find the target user's DN
-    var_dump($aFilter);
+    // var_dump($aFilter);
     // cover all cases
     $myResult = array(0, "Unknown error");
 
     // connect to the LDAP server
     $myLdapConn = ldap_connect($aLdapUrl);
-    var_dump($myLdapConn);
+    // var_dump($myLdapConn);
     // specify LDAP version protocol
     ldap_set_option($myLdapConn,LDAP_OPT_PROTOCOL_VERSION,3);
     
@@ -79,8 +82,7 @@ class YunoSSOPlugin extends phplistPlugin
 
     // if the connection succeeded
     if ($myLdapConn) {
-      // do an LDAP bind
-      // bind anonymously
+      // do an anonymous LDAP bind
       $myBindResult = ldap_bind($myLdapConn);
       // check to see if bind failed
       if (!$myBindResult) {
@@ -90,7 +92,7 @@ class YunoSSOPlugin extends phplistPlugin
       else {
         // search for the user in question
         $myLdapSearchResult = ldap_search($myLdapConn, $aBaseDn, $aFilter);
-        var_dump($myLdapSearchResult);
+        // var_dump($myLdapSearchResult);
         if (!$myLdapSearchResult) {
           $myResult = array(0, 'User not found');
         }
@@ -143,7 +145,7 @@ class YunoSSOPlugin extends phplistPlugin
         
         $user_has_permission = $this->checkLdapAuth($authuser, $Yunohost_app_name);
 
-        var_dump($user_has_permission);
+        // var_dump($user_has_permission);
         
         if ( $user_has_permission[0] == 0 ) {
           return;
