@@ -12,14 +12,13 @@ Phplist manages sending emails to lists. The lists can be uploaded but user can 
 **Shipped version:** 3.6.1
 [source repo](https://github.com/phpList/phplist3)
 
-## Screenshots
-
 ## Demo
+[demo page](https://www.phplist.org/demo/)
 
 ## Configuration
-At install, you define a user that has admin right for phplist. When logged in Yunohost, this user automatically accesses the admin page of phplist when clicking on the tile (or adding /admin/ to the base url of the app). Other users can be granted that permission too.
+At install, you define a user that has admin right for phplist. When logged in Yunohost, this user automatically accesses the admin page of phplist when clicking on the tile (or adding /admin/ to the base url of the app). Other users can be granted that permission too. The built-in default "admin" account can be safely deleted.
 
-After install go to the admin panel > config tab. You will probably want to customize mnay things regarding receiving subscriptions and sending email for your organization. See the [manual](https://www.phplist.org/manual/books/phplist-manual/). You can also import existing lists of adresses.
+After install go to the admin panel > config tab. You will probably want to customize many things regarding receiving subscriptions and sending email for your organization. See the [manual](https://www.phplist.org/manual/books/phplist-manual/). You can also import existing lists of adresses.
 
 ### Toggling Test Mode
 Immediatly after setup, Phplist runs in test mode, not sending emails. This not a bug : before real use, a lot of stuff need to be configured right and need testing (otherwise you would soon become flagged as a spammer). 
@@ -49,6 +48,11 @@ All users that are given the phplist admin permission (same as the admin user de
 Fail2ban not configured yet. Contact me if you know how to do that.
 
 ## Additional information
+In this package, phpList comes with the set of default plugins (not all activated), plus the Captcha plugin. However, for security reasons, adding further phpList plugins can only be done with the help of a Yunohost admin (plugins directory is read-only).
+
+The API is disabled (this is the default for phplist). If you need it, clone this repo and edit the install script to enable it (Untested).
+
+PhpList's built-in updater was removed. Updates will be handled by this package.
 
 ## Links
 
