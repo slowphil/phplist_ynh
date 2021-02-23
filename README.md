@@ -7,9 +7,9 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 
 Phplist manages sending emails to lists. The lists can be uploaded but user can also subscribe/unsubscibe.
 
-**THIS IS WORK IN PROGRESS - NOT FOR PRODUCTION**
+**THIS APP IS MATURE, BUT ITS INTEGRATION WITH YUNOHOST SHOULD BE CONSIDERED BETA**
 
-**Shipped version:** 3.6.0
+**Shipped version:** 3.6.1
 [source repo](https://github.com/phpList/phplist3)
 
 ## Screenshots
@@ -17,7 +17,9 @@ Phplist manages sending emails to lists. The lists can be uploaded but user can 
 ## Demo
 
 ## Configuration
-Once installed, go to the chosen URL and log in as admin with the password you enter upon configuring.
+At install, you define a user that has admin right for phplist. When logged in Yunohost, this user automatically accesses the admin page of phplist when clicking on the tile (or adding /admin/ to the base url of the app). Other users can be granted that permission too.
+
+After install go to the admin panel > config tab. You will probably want to customize mnay things regarding receiving subscriptions and sending email for your organization. See the [manual](https://www.phplist.org/manual/books/phplist-manual/). You can also import existing lists of adresses.
 
 ### Toggling Test Mode
 Immediatly after setup, Phplist runs in test mode, not sending emails. This not a bug : before real use, a lot of stuff need to be configured right and need testing (otherwise you would soon become flagged as a spammer). 
@@ -36,16 +38,15 @@ with small bits (config-panel and actions) taken from [my_webapp_ynh](https://gi
 
 #### Multi-user support
 
-Are LDAP and HTTP auth supported? HTTP auth mostly working, needs tweaking
-Can the app be used by multiple users? The app is meant to be publicly visible (visitors can access it) so that people can subscribe to your lists 
+Are LDAP and HTTP auth supported? Yes, through a Yunohost SSO plugin.
+
+Can the app be used by multiple users? Yes. The app is meant to be publicly visible (visitors can access it) so that people can subscribe to your lists 
 All users that are given the phplist admin permission (same as the admin user declared at install) are considered superusers in phplist 
 
 #### Supported architectures
 
 ## Limitations
-Fail2ban not configured yet
-Contact me if you know how to do that.
-SSO mostly working, maybe a bit rough presently. Authorized users should be automatically forwarded to the admin page.   
+Fail2ban not configured yet. Contact me if you know how to do that.
 
 ## Additional information
 
