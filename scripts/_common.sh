@@ -13,8 +13,8 @@ YNH_PHP_VERSION="7.3"
 # GD (required by CKEditor Plugin only)
 
 # dependencies used by the app 
-#(copied from https://releases.turnkeylinux.org/turnkey-phplist/16.0-buster-amd64/turnkey-phplist-16.0-buster-amd64.manifest)
-pkg_dependencies="php7.3-common php7.3-curl php7.3-gd php7.3-imap php7.3-json php7.3-mysql php7.3-opcache php7.3-readline php7.3-xml php7.3-zip"
+#(copied from https://github.com/phpList/phplist-docker/blob/master/phplist/Dockerfile.git)
+pkg_dependencies="php7.3-curl php7.3-gd php7.3-imap php7.3-mysql php7.3-xml php7.3-zip"
 
 #=================================================
 # PERSONAL HELPERS

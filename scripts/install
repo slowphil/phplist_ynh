@@ -228,6 +228,7 @@ ynh_script_progression --message="Configuring a systemd service..." --time --wei
 mv "$final_path/lists/config/config.php" "$final_path/lists/config/config_short.php"
 mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
 echo "\$plugins_autoenable = array('YunoSSOPlugin', 'CommonPlugin', 'CaptchaPlugin');" >> "$final_path/lists/config/config.php"
+echo "\$developer_email = 'none';" >> "$final_path/lists/config/config.php"  #see https://github.com/phpList/phplist3/issues/718
 
 # adjust $pageroot = $path_url
 # from phplist :
@@ -261,6 +262,36 @@ fi
 ynh_replace_string --match_string="// define('ALWAYS_ADD_USERTRACK',0);" --replace_string="define('ALWAYS_ADD_USERTRACK',0);" --target_file="$final_path/lists/config/config.php"
 ynh_replace_string --match_string="define('CLICKTRACK', 1);" --replace_string="define('CLICKTRACK', 0);" --target_file="$final_path/lists/config/config.php"
 
+#updater : we want updates handled by yunohost entirely
+#disable updater
+ynh_replace_string --match_string="define('ALLOW_UPDATER', true);" --replace_string="define('ALLOW_UPDATER', false);" --target_file="$final_path/lists/config/config.php"
+#remove code
+ynh_secure_remove "$final_path/lists/updater"
+
+# suppress remnants of old interface no longer fully supported
+ynh_secure_remove "$final_path/lists/admin/.minceconf"
+
+# Visitors need to access a few files inside admin/ui
+# However, below we define a specific yunohost permission for accessing admin/ so that only some users have superuser privilieges in phplist
+# In order to not break ui for visitores, we symlink these files outside of admin/
+cd "$final_path/lists"
+sed -i "s|admin\/ui\/phplist-ui-bootlist\/js|ui\/phplist-ui-bootlist\/js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
+sed -i "s|admin\/js\/phplistapp.js|js\/phplistapp.js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
+sed -i "s|admin\/ui\/phplist-ui-bootlist\/css|ui\/phplist-ui-bootlist\/css|g"  admin/ui/phplist-ui-bootlist/frontendheader.php
+ln -sr admin/ui ui
+ln -sr admin/js/phplistapp.js js/phplistapp.js
+ 
+# API
+if true; then
+  # API is disabled by default, just suppress the corresponding code
+  ynh_secure_remove base # that's the API
+  ynh_secure_remove api.php
+else
+  # OTOH, if one needs the API, should enable it -- see https://www.phplist.org/manual/books/phplist-manual/page/api-and-integrations
+  # WARNING : untested
+  ynh_replace_string --match_string="{ view_response_listener: { enabled: false } }" --replace_string="{ view_response_listener: { enabled: true } }" --target_file="base/config/config_modules.yml"
+fi
+
 
 #=================================================
 # SETUP APPLICATION WITH CURL
@@ -289,7 +320,10 @@ ynh_systemd_action --service_name=nginx --action=reload
 password=$(ynh_string_random --length=12)
 # Installation with curl
 ynh_script_progression --message="Finalizing installation..." --time --weight=1
-ynh_local_curl "admin/?firstinstall=1&page=initialise&adminname=${admin}&orgname=${orga}&adminpassword=${password}&adminemail=none"
+#ynh_local_curl "admin/?firstinstall=1&page=initialise&adminname=${admin}&orgname=${orga}&adminpassword=${password}&adminemail=none"
+#had curl error 92 in a vm; setting up from cmd line see https://github.com/phpList/phplist-docker/blob/master/phplist/docker-entrypoint.sh
+ADMIN_NAME=${admin} ORGANISATION_NAME=${orga} ADMIN_PASSWORD=${password} ADMIN_EMAIL="none" /usr/bin/php "$final_path/lists/admin/index.php" -c "$final_path/lists/config/config.php" -pinitialise
+
 
 # Remove the public access
 ynh_permission_update --permission="main" --remove="visitors"
@@ -317,8 +351,9 @@ ynh_store_file_checksum --file="$final_path/lists/config/config.php"
 
 # Set permissions to app files
 chown -R root: $final_path
-# for enabling plugins installation
-chown -R $app: "$final_path/lists/admin/plugins"
+# NOT enabling plugins installation by phplist admins
+# adding arbitrary code is a security risk : yunohost admin needs to be involved for doing that
+#chown -R $app: "$final_path/lists/admin/plugins"
 
 #=================================================
 # SETUP LOGROTATE
@@ -390,7 +425,7 @@ ynh_permission_create --permission="admin" --url="/admin" --allowed=$admin
 # Everyone can access to the api part
 # We don't want to display the tile in the sso so we put --show_tile="false"
 # And we don't want that the YunoHost Admin can remove visitors group to this permission, so we put --protected="true"
-ynh_permission_create --permission="api" --url "/api" --allowed="visitors" --show_tile="false" --protected="true"
+#ynh_permission_create --permission="api" --url "/api/v2" --allowed="visitors" --show_tile="false" --protected="true"
 
 #=================================================
 # RELOAD NGINX
