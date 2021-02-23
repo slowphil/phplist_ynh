@@ -1,75 +1,62 @@
-# App exemple pour YunoHost
+# Phplist pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/REPLACEBYYOURAPP.svg)](https://dash.yunohost.org/appci/app/REPLACEBYYOURAPP) ![](https://ci-apps.yunohost.org/ci/badges/REPLACEBYYOURAPP.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/REPLACEBYYOURAPP.maintain.svg)  
-[![Installer REPLACEBYYOURAPP avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=REPLACEBYYOURAPP)
-
-*[Read this readme in english.](./README.md)* 
-
-> *Ce package vous permet d'installer REPLACEBYYOURAPP rapidement et simplement sur un serveur YunoHost.  
-Si vous n'avez pas YunoHost, consultez [le guide](https://yunohost.org/#/install) pour apprendre comment l'installer.*
+> Ce package vous permet d'installer [Phplist] (https://www.phplist.org/) sur un serveur YunoHost.  
+Si vous n'avez pas YunoHost, veuillez consulter [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
 
 ## Vue d'ensemble
-Description rapide de cette application.
 
-**Version incluse :** 1.0
+Phplist gère l'envoi de courriels à des listes. Les listes peuvent être téléchargées mais l'utilisateur peut également s'abonner/se désabonner.
 
-## Captures d'écran
+**CETTE APPLICATION EST MATURE, MAIS SON INTÉGRATION AVEC YUNOHOST DOIT ÊTRE CONSIDÉRÉE COMME BETA**
 
-![](Lien vers une capture d'écran de cette application.)
+**Version livrée:** 3.6.1
+[source repo](https://github.com/phpList/phplist3)
 
 ## Démo
-
-* [Démo officielle](Lien vers un site de démonstration de cette application.)
+[page de démonstration](https://www.phplist.org/demo/)
 
 ## Configuration
+Lors de l'installation, vous définissez un utilisateur qui a le droit d'administration pour phplist. Lorsqu'il est connecté à Yunohost, cet utilisateur accède automatiquement à la page d'administration de phplist en cliquant sur la tuile (ou en ajoutant /admin/ à l'url de base de l'application). D'autres utilisateurs peuvent également recevoir cette permission. Le compte "admin" créé par défaut peut être supprimé sans problème.
 
-Comment configurer cette application : via le panneau d'administration, un fichier brut en SSH ou tout autre moyen.
+Après l'installation, allez dans le panneau d'administration > onglet "config". Vous voudrez probablement personnaliser de nombreuses choses concernant la réception d'abonnements et l'envoi de courriels pour votre organisation. Voir le [manuel] (https://www.phplist.org/manual/books/phplist-manual/). Vous pouvez également importer des listes d'adresses existantes.
+
+### Basculer le mode test
+Immédiatement après l'installation, Phplist fonctionne en mode test et n'envoie pas de courriels. Ce n'est pas un bogue : avant d'être utilisé, beaucoup de choses doivent être configurées correctement et doivent être testées (sinon vous seriez rapidement catalogué comme spammeur). 
+
+Une fois configuré et testé, le mode démo peut être désactivé depuis le panneau de configuration (expérimental) de l'application.
+Pour accéder à ce panneau de configuration, allez dans votre panneau d'administration Yunohost, naviguez jusqu'à votre installation Phplist et ajoutez /config-panel au chemin, par exemple
+https://mydomain.tld/yunohost/admin/#/apps/phplist/config-panel 
 
 ## Documentation
+Cet installateur est dérivé de l'application [modèle](https://github.com/YunoHost/example_ynh) de yunohost
+avec des petits bouts (panneau de configuration et actions) tirés de [my_webapp_ynh](https://github.com/YunoHost-Apps/my_webapp_ynh) ([documentation](https://github.com/YunoHost/doc/blob/master/app_my_webapp.md)).
 
- * Documentation officielle : Lien vers la documentation officielle de cette application.
- * Documentation YunoHost : Si une documentation spécifique est nécessaire, n'hésitez pas à contribuer.
+[documentation Phplist](https://www.phplist.org/)
 
-## Caractéristiques spécifiques YunoHost
+## Caractéristiques spécifiques de YunoHost
 
-#### Support multi-utilisateur
+#### Support multi-utilisateurs
 
-* L'authentification LDAP et HTTP est-elle prise en charge ?
-* L'application peut-elle être utilisée par plusieurs utilisateurs ?
+Les auteurs LDAP et HTTP sont-ils pris en charge ? Oui, via un plugin SSO de Yunohost.
 
-#### Architectures supportées
+L'application peut-elle être utilisée par plusieurs utilisateurs ? Oui. L'application est destinée à être publiquement visible (les visiteurs peuvent y accéder) afin que les gens puissent s'abonner à vos listes.  
+Tous les utilisateurs qui reçoivent la permission d'administrateur de phplist (la même que l'utilisateur administrateur déclaré lors de l'installation) sont considérés comme des super-utilisateurs dans phplist.
 
-* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/REPLACEBYYOURAPP%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/REPLACEBYYOURAPP/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/REPLACEBYYOURAPP%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/REPLACEBYYOURAPP/)
+#### Architectures soutenues
 
 ## Limitations
+Fail2ban n'est pas encore configuré. Contactez-moi si vous savez comment faire.
 
-* Limitations connues.
+## Informations complémentaires
+Dans ce paquet, phpList est livré avec les plugins par défaut (pas tous activés), plus le plugin Captcha. Cependant, pour des raisons de sécurité, l'ajout de plugins supplémentaires pour phpList ne peut se faire qu'avec l'aide d'un administrateur Yunohost (le répertoire des plugins est en lecture seule).
 
-## Informations additionnelles
+L'API est désactivée (c'est la valeur par défaut pour phplist). Si vous en avez besoin, clonez ce répertoire et modifiez le script d'installation pour l'activer (non testé).
 
-* Autres informations que vous souhaitez ajouter sur cette application.
-
-**Plus d'informations sur la page de documentation :**  
-https://yunohost.org/packaging_apps
+La mise à jour intégrée de phpList a été supprimée. Les mises à jour seront gérées par ce paquet.
 
 ## Liens
 
- * Signaler un bug : https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/issues
- * Site de l'application : Lien vers le site officiel de cette application.
- * Dépôt de l'application principale : Lien vers le dépôt officiel de l'application principale.
- * Site web YunoHost : https://yunohost.org/
+ * Signaler un bogue : https://github.com/slowphil/phplist_ynh/issues
+ * Site web de YunoHost : https://yunohost.org/
 
 ---
-
-## Informations pour les développeurs
-
-**Seulement si vous voulez utiliser une branche de test pour le codage, au lieu de fusionner directement dans la banche principale.**
-Merci de faire vos pull request sur la [branche testing](https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing).
-
-Pour essayer la branche testing, procédez comme suit.
-```
-sudo yunohost app install https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing --debug
-ou
-sudo yunohost app upgrade REPLACEBYYOURAPP -u https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing --debug
-```

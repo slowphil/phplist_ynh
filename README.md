@@ -39,8 +39,8 @@ with small bits (config-panel and actions) taken from [my_webapp_ynh](https://gi
 
 Are LDAP and HTTP auth supported? Yes, through a Yunohost SSO plugin.
 
-Can the app be used by multiple users? Yes. The app is meant to be publicly visible (visitors can access it) so that people can subscribe to your lists 
-All users that are given the phplist admin permission (same as the admin user declared at install) are considered superusers in phplist 
+Can the app be used by multiple users? Yes. The app is meant to be publicly visible (visitors can access it) so that people can subscribe to your lists.
+All users that are given the phplist admin permission (same as the admin user declared at install) are considered superusers in phplist.
 
 #### Supported architectures
 
@@ -60,4 +60,3 @@ PhpList's built-in updater was removed. Updates will be handled by this package.
  * YunoHost website: https://yunohost.org/
 
 ---
-
