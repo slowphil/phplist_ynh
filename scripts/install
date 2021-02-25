@@ -267,8 +267,8 @@ ynh_replace_string --match_string="define('CLICKTRACK', 1);" --replace_string="d
 
 #disable stealth tracking by phplist.com - tracking should always be opt-in only!
 ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'" --replace_string="./images" --target_file="$final_path/lists/admin/lib.php"
-ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/' . $v . '" --replace_string="./images" --target_file="$final_path/lists/admin/defaultconfig.php"
-ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/' . $v . '" --replace_string="./images" --target_file="$final_path/lists/admin/connect.php"
+ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/' . \$v . '" --replace_string="./images" --target_file="$final_path/lists/admin/defaultconfig.php"
+ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/'.\$v.'" --replace_string="./images" --target_file="$final_path/lists/admin/connect.php"
 ynh_replace_string --match_string="https://d3u7tsw7cvar0t.cloudfront.net" --replace_string="" --target_file="$final_path/lists/admin/init.php"
 ynh_replace_string --match_string="http://powered.phplist.com/images" --replace_string="" --target_file="$final_path/lists/admin/init.php"
 ynh_replace_string --match_string="https://d3u7tsw7cvar0t.cloudfront.net" --replace_string="." --target_file="$final_path/lists/admin/connect.php"
