@@ -245,6 +245,9 @@ ynh_replace_string --match_string="phplistdb" --replace_string="${db_name}" --ta
 ynh_replace_string --match_string="\$database_user = 'phplist';" --replace_string="\$database_user = '${db_user}';" --target_file="$final_path/lists/config/config.php"
 ynh_replace_string --match_string="\$database_password = 'phplist';" --replace_string="\$database_password = '${db_pwd}';" --target_file="$final_path/lists/config/config.php"
 
+#  customize for distiguishing possible multiple instances
+ynh_replace_string --match_string="\$GLOBALS['installation_name'] = 'phpList';" --replace_string="\$GLOBALS['installation_name'] = '${app}';" --target_file="$final_path/lists/admin/init.php"   
+
 if [ "$language" != "en" ]; then
   ynh_replace_string --match_string="\$default_system_language = 'en';" --replace_string="\$default_system_language = '$language';" --target_file="$final_path/lists/config/config.php"
 fi 
@@ -262,6 +265,28 @@ fi
 ynh_replace_string --match_string="// define('ALWAYS_ADD_USERTRACK',0);" --replace_string="define('ALWAYS_ADD_USERTRACK',0);" --target_file="$final_path/lists/config/config.php"
 ynh_replace_string --match_string="define('CLICKTRACK', 1);" --replace_string="define('CLICKTRACK', 0);" --target_file="$final_path/lists/config/config.php"
 
+#disable stealth tracking by phplist.com - tracking should always be opt-in only!
+ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'" --replace_string="./images" --target_file="$final_path/lists/admin/lib.php"
+ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/' . $v . '" --replace_string="./images" --target_file="$final_path/lists/admin/defaultconfig.php"
+ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/' . $v . '" --replace_string="./images" --target_file="$final_path/lists/admin/connect.php"
+ynh_replace_string --match_string="https://d3u7tsw7cvar0t.cloudfront.net" --replace_string="" --target_file="$final_path/lists/admin/init.php"
+ynh_replace_string --match_string="http://powered.phplist.com/images" --replace_string="" --target_file="$final_path/lists/admin/init.php"
+ynh_replace_string --match_string="https://d3u7tsw7cvar0t.cloudfront.net" --replace_string="." --target_file="$final_path/lists/admin/connect.php"
+ynh_replace_string --match_string="define('TLD_AUTH_LIST', 'https://www.phplist.com/files/tlds-alpha-by-domain.txt');" --replace_string="" --target_file="$final_path/lists/admin/init.php"
+ynh_replace_string --match_string="define('TLD_AUTH_MD5', 'https://www.phplist.com/files/tlds-alpha-by-domain.txt.md5');" --replace_string="" --target_file="$final_path/lists/admin/init.php"
+ynh_replace_string --match_string="//define('TLD_AUTH_" --replace_string="define('TLD_AUTH_" --target_file="$final_path/lists/admin/init.php"
+
+
+#~ admin/lib.php:    $pixel = '<img src="'.PHPLIST_POWEREDBY_URLROOT.'/pixel.gif" width="1" height="1" />';
+#~ admin/defaultconfig.php:    $PoweredBy = '<p align="left"><a href="https://www.phplist.com"><img src="'.PHPLIST_POWEREDBY_URLROOT.'/' . $v . '/power-phplist.png" width="88" height="31" title="powered by phplist" alt="powered by phplist" border="0" /></a></p>';
+#~ admin/connect.php:    $PoweredByImage = '<p class="poweredby" style="text-align:center"><a href="https://www.phplist.com/poweredby?utm_source=pl'.$v.'&amp;utm_medium=poweredhostedimg&amp;utm_campaign=phpList" title="visit the phpList website" ><img src="'.PHPLIST_POWEREDBY_URLROOT.'/'.$v.'/power-phplist.png" title="powered by phpList version '.$v.', &copy; phpList ltd" alt="powered by phpList '.$v.', &copy; phpList ltd" border="0" /></a></p>';
+#~ admin/init.php.back:        define('PHPLIST_POWEREDBY_URLROOT', 'https://d3u7tsw7cvar0t.cloudfront.net/images');
+#~ admin/init.php.back:        define('PHPLIST_POWEREDBY_URLROOT', 'http://powered.phplist.com/images');
+#~ admin/connect.php:        $pixel = '<img src="https://d3u7tsw7cvar0t.cloudfront.net/images/pixel.gif" width="1" height="1" alt="" />';
+
+ln -sr $final_path/lists/admin/images/power-phplist.png  $final_path/lists/admin/images/powerphplist.png 
+ynh_replace_string --match_string="//define('ADMIN_PROTOCOL','https');" --replace_string="define('ADMIN_PROTOCOL','https');" --target_file="$final_path/lists/config/config.php"
+
 #updater : we want updates handled by yunohost entirely
 #disable updater
 ynh_replace_string --match_string="define('ALLOW_UPDATER', true);" --replace_string="define('ALLOW_UPDATER', false);" --target_file="$final_path/lists/config/config.php"
@@ -275,9 +300,12 @@ ynh_secure_remove "$final_path/lists/admin/.minceconf"
 # However, below we define a specific yunohost permission for accessing admin/ so that only some users have superuser privilieges in phplist
 # In order to not break ui for visitores, we symlink these files outside of admin/
 cd "$final_path/lists"
-sed -i "s|admin\/ui\/phplist-ui-bootlist\/js|ui\/phplist-ui-bootlist\/js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
-sed -i "s|admin\/js\/phplistapp.js|js\/phplistapp.js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
-sed -i "s|admin\/ui\/phplist-ui-bootlist\/css|ui\/phplist-ui-bootlist\/css|g"  admin/ui/phplist-ui-bootlist/frontendheader.php
+#~ sed -i "s|admin/ui/phplist-ui-bootlist/js|ui/phplist-ui-bootlist/js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
+#~ sed -i "s|admin/js/phplistapp.js|js/phplistapp.js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
+#~ sed -i "s|admin/ui/phplist-ui-bootlist/css|ui/phplist-ui-bootlist/css|g"  admin/ui/phplist-ui-bootlist/frontendheader.php
+ynh_replace_string --match_string="admin/ui/phplist-ui-bootlist/js" --replace_string="ui/phplist-ui-bootlist/js" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendfooter.php"
+ynh_replace_string --match_string="admin/js/phplistapp.js" --replace_string="js/phplistapp.js" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendfooter.php"
+ynh_replace_string --match_string="admin/ui/phplist-ui-bootlist/css" --replace_string="ui/phplist-ui-bootlist/css" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendheader.php"
 ln -sr admin/ui ui
 ln -sr admin/js/phplistapp.js js/phplistapp.js
  
