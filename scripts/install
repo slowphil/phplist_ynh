@@ -255,7 +255,8 @@ fi
 if [ "$language" = "fr" ]; then
   ynh_replace_string --match_string="\$language_module = 'english.inc';" --replace_string="\$language_module = 'french.inc';" --target_file="$final_path/lists/config/config.php"
   #fix many untranslated texts
-  patch -i /$YNH_CWD/../sources/patches/defaultconfig-fr.diff $final_path/lists/admin/defaultconfig.php 
+  patch -i /$YNH_CWD/../sources/patches/defaultconfig-fr.diff $final_path/lists/admin/defaultconfig.php
+  patch -i /$YNH_CWD/../sources/patches/lib-fr.diff $final_path/lists/admin/lib.php
 fi 
 
 #toggle test mode off (enable sending) -use actions instead

@@ -1,0 +1,30 @@
+--- lib.php
++++ lib.php.fr
+@@ -1545,20 +1545,20 @@
+ function addInviteCampaign($forcedOwnerId = null) {
+ 
+     $message =
+-'<p>Hi [FIRST NAME%%there], remember us? You first signed up for our email newsletter on&nbsp;[ENTERED] &ndash; please click here to confirm you&#39;re happy to continue receiving our messages:</p>
++'<p>Bonjour [FIRST NAME%%],</p>
+ 
+-<p><strong><a href="[CONFIRMATIONURL]" title="Confirm subscription">Continue receiving messages</a></strong>&nbsp; <u>(If you do not confirm using this link, then you won&#39;t hear from us again</u>)</p>
++<p>Vous vous &ecirc;tes (ou vous avez été) inscrit.e pour recevoir notre lettre d&#39;information &eacute;lectronique le&nbsp; [ENTERED] &ndash; Veuillez cliquer ici pour confirmer que vous souhaitez recevoir nos messages:</p>
+ 
+-<p>While you&#39;re at it, you can also update your preferences, including your email address or other details, by clicking here:</p>
++<p><strong><a href="[CONFIRMATIONURL]" title="Confirmation de l&#39;inscription">Continuer &agrave; recevoir les messages</a></strong>&nbsp; <u>(Si vous ne suivez pas ce lien, vous ne recevrez plus de message de notre part</u>)</p>
+ 
+-<p><strong><a href="[PREFERENCESURL]">Update preferences</a></strong></p>
++<p>Pendant que vous y &ecirc;tes, vous pouvez &eacute;galement mettre &agrave; jour vos abonnements &agrave; nos listes, vos pr&eacute;f&eacute;rences, votre adresse &eacute;lectronique ou d&#39;autres d&eacute;tails, en cliquant ici:</p>
+ 
+-<p>By confirming your membership and keeping your details up to date, you&#39;re helping us to manage and protect your data in accordance with best practices.</p>
++<p><strong><a href="[PREFERENCESURL]">Mettre &agrave; jour les pr&eacute;f&eacute;rences</a></strong></p>
+ 
+-<p>Thank you!</p>';
++<p>Merci !</p>';
+ 
+     $inviteMessage = addslashes($message);
+-    $inviteMessageSubject = "Do you want to continue receiving our messages?";
++    $inviteMessageSubject = "Souhaitez-vous recevoir nos messages?";
+     $uuid = uuid::generate(4);
+     if ( $forcedOwnerId !== null) {
+         $ownerid = $forcedOwnerId;
