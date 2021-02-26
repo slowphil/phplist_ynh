@@ -326,10 +326,8 @@ fi
 
 #fix securimage for captcha plugin -- see https://resources.phplist.com/plugin/captcha#change_to_the_securimage_code
 ynh_replace_string --match_string="public \$session_name   = null;" --replace_string="public \$session_name   = 'phpListSession';" --target_file="$final_path/lists/securimage/securimage.php"
-#adjust default path of securimage in Captcha plugin so that it works out-of-the-box
-if [ "$path_url" != "/" ] ; then
-  ynh_replace_string --match_string="'value' => '/securimage'" --replace_string="'value' => '${path_url}/securimage'" --target_file="$final_path/lists/admin/plugins/CaptchaPlugin.php"
-fi
+#pass actual path to securimage call in Captcha plugin so that it works out-of-the-box
+ynh_replace_string --match_string="'input_text' => getConfig('captcha_captcha_prompt')," --replace_string="'securimage_path' => \$GLOBALS['pageroot'].getConfig('captcha_securimage_path'),'input_text' => getConfig('captcha_captcha_prompt')," --target_file="$final_path/lists/admin/plugins/CaptchaPlugin.php"
 
 #=================================================
 # SETUP APPLICATION WITH CURL
