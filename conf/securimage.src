@@ -1,0 +1,7 @@
+SOURCE_URL=https://github.com/dapphp/securimage/archive/3.6.8.tar.gz
+SOURCE_SUM=95c5a73b8205cd30a8504ddbc9084c30f23cea98dd90318cc2f6d9f6994b94fb
+SOURCE_SUM_PRG=sha256sum
+SOURCE_FORMAT=tar.gz
+SOURCE_IN_SUBDIR=1
+SOURCE_FILENAME=securimage-3.6.8.tar.gz
+SOURCE_EXTRACT=true
