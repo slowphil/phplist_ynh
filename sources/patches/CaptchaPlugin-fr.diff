@@ -1,0 +1,60 @@
+--- CaptchaPlugin-mod.php	2021-02-26 13:36:28.709651805 +0100
++++ CaptchaPlugin-mod-fr.php	2021-02-26 13:57:55.284445798 +0100
+@@ -24,47 +24,47 @@
+      */
+     public $name = 'Captcha Plugin';
+     public $enabled = true;
+-    public $description = 'Creates a captcha field for subscription forms';
++    public $description = 'Créer une entrée captcha dans les pages d\'abonnements';
+     public $documentationUrl = 'https://resources.phplist.com/plugin/captcha';
+     public $authors = 'Duncan Cameron';
+     public $settings = array(
+         'captcha_bot_email' => array(
+-            'description' => 'Whether to validate the email address using bot bouncer',
++            'description' => 'Valider l\'adresse email avec un anti-spam?',
+             'type' => 'boolean',
+             'value' => '1',
+             'allowempty' => true,
+             'category' => 'Captcha',
+         ),
+         'captcha_captcha_prompt' => array(
+-            'value' => 'Please enter the text in the CAPTCHA image',
+-            'description' => 'Prompt for the CAPTCHA field',
++            'value' => 'Veuillez taper le texte dans l\'image CAPTCHA',
++            'description' => 'Indication pour le champ d\'entrée du CAPTCHA',
+             'type' => 'text',
+             'allowempty' => 0,
+             'category' => 'Captcha',
+         ),
+         'captcha_captcha_message' => array(
+-            'value' => 'The CAPTCHA value that you entered was incorrect',
+-            'description' => 'Message to be displayed when entered CAPTCHA is incorrect',
++            'value' => 'Le texte CAPTCHA que vous avez entré était incorrect',
++            'description' => 'Message à afficher quand l\'entrée CAPTCHA est incorrecte',
+             'type' => 'text',
+             'allowempty' => 0,
+             'category' => 'Captcha',
+         ),
+         'captcha_bot_message' => array(
+-            'value' => 'You cannot subscribe with this email address',
+-            'description' => 'Message to be displayed when email address is rejected',
++            'value' => 'Votre adresse mail n\'est pas valable ou est signalée comme spam; Utilisez une autre adresse',
++            'description' => 'Message à afficher quand l\'adresse mail est rejetée',
+             'type' => 'text',
+             'allowempty' => 0,
+             'category' => 'Captcha',
+         ),
+         'captcha_eventlog' => array(
+-            'description' => 'Whether to log event for each rejected captcha and each rejected subscription',
++            'description' => 'Enregistrer les rejets captcha et validation de mail dans le log?',
+             'type' => 'boolean',
+             'value' => '1',
+             'allowempty' => true,
+             'category' => 'Captcha',
+         ),
+         'captcha_copyadmin' => array(
+-            'description' => 'Whether to send an email to the admin for each rejected captcha and each rejected subscription',
++            'description' => 'Envoyer un mail à l\'administrateur pour les rejets rejets captcha et validation de mail?',
+             'type' => 'boolean',
+             'value' => '0',
+             'allowempty' => true,

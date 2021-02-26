@@ -157,6 +157,7 @@ ynh_secure_remove $unpackdir
 ynh_setup_source --dest_dir="$final_path/lists/securimage" --source_id="securimage"
 ynh_setup_source --dest_dir="$final_path/lists/admin/plugins/" --source_id="captchaplugin"
 
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -326,8 +327,12 @@ fi
 
 #fix securimage for captcha plugin -- see https://resources.phplist.com/plugin/captcha#change_to_the_securimage_code
 ynh_replace_string --match_string="public \$session_name   = null;" --replace_string="public \$session_name   = 'phpListSession';" --target_file="$final_path/lists/securimage/securimage.php"
-#pass actual path to securimage call in Captcha plugin so that it works out-of-the-box
-ynh_replace_string --match_string="'input_text' => getConfig('captcha_captcha_prompt')," --replace_string="'securimage_path' => \$GLOBALS['pageroot'].getConfig('captcha_securimage_path'),'input_text' => getConfig('captcha_captcha_prompt')," --target_file="$final_path/lists/admin/plugins/CaptchaPlugin.php"
+#patch captcha plugin to pass actual path to securimage call (otherwise images do not load)
+patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
+if [ "$language" = "fr" ]; then
+  #the patch applies to our already modified file!
+  patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin-fr.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
+fi 
 
 #=================================================
 # SETUP APPLICATION WITH CURL

@@ -1,2 +1,4 @@
 The patch files *-fr.diff are applied only when the app is installed in French language, to fix untranslated sentences.
-It has a .diff (not .patch) extension in order to not be applied automatically by the install script.
+The CaptchaPlugin.diff fixes the display of images, it is applied unconditioannly.
+All patches have a .diff (not .patch) extension in order to not be applied automatically by the install script (otherwise some patches would fail since we install from different sources sequentially).
+

@@ -1,0 +1,35 @@
+--- CaptchaPlugin.php
++++ CaptchaPlugin-mod.php
+@@ -28,13 +28,6 @@
+     public $documentationUrl = 'https://resources.phplist.com/plugin/captcha';
+     public $authors = 'Duncan Cameron';
+     public $settings = array(
+-        'captcha_securimage_path' => array(
+-            'description' => 'Path to the securimage directory (from the web root)',
+-            'type' => 'text',
+-            'value' => '/securimage',
+-            'allowempty' => false,
+-            'category' => 'Captcha',
+-        ),
+         'captcha_bot_email' => array(
+             'description' => 'Whether to validate the email address using bot bouncer',
+             'type' => 'boolean',
+@@ -149,9 +142,7 @@
+ 
+     private function captchaEnabled()
+     {
+-        $path = trim(getConfig('captcha_securimage_path'), '/');
+-
+-        if (!file_exists($f = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . "/$path/securimage.php")) {
++        if (!file_exists($f = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . "/securimage/securimage.php")) {
+             logEvent("securimage file '$f' not found");
+ 
+             return false;
+@@ -206,6 +197,7 @@
+         if (!empty($pageData['captcha_include']) && $this->captchaEnabled()) {
+             return Securimage::getCaptchaHtml(
+                 array(
++                    'securimage_path' => $GLOBALS['pageroot'].'/securimage',
+                     'input_text' => getConfig('captcha_captcha_prompt'),
+                 )
+             );
