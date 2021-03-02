@@ -64,9 +64,9 @@ fi
 change_path=0
 if [ "$old_path" != "$new_path" ]
 then
-  echo -e "ERROR : Phplist does not allow changing the path after initilization."
-  ynh_die --message="Phplist does not allow changing the path after initilization. Backup the database, reinstall phplist to new path and restore the DB"
-	#change_path=1
+  #echo -e "ERROR : Phplist does not allow changing the path after initilization."
+  #ynh_die --message="Phplist does not allow changing the path after initilization. Backup the database, reinstall phplist to new path and restore the DB"
+	change_path=1
 fi
 
 #=================================================

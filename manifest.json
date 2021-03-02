@@ -1,6 +1,6 @@
 {
     "id": "phplist",
-    "name": "Phplist newsletter server",
+    "name": "phpList",
     "packaging_format": 1,
     "description": {
         "en": "Manages your newletters & subscribers lists",
@@ -8,7 +8,7 @@
     },
     "version": "3.6.1~ynh0",
     "url": "https://github.com/phpList/phplist3",
-    "license": "AGPL-V3",
+    "license": "AGPL-3.0",
     "maintainer": {
         "name": "None...",
         "email": ""
@@ -50,11 +50,15 @@
             {
                 "name": "is_public",
                 "type": "boolean",
+                "default": true,
                 "ask": {
                     "en": "Is it a public application?",
                     "fr": "Est-ce une application publique ?"
                 },
-                "default": true
+                "help": {
+                    "en": "Should phpList be accessible to visitors with no Yunohost account?",
+                    "fr": "Les visiteurs sans compte Yunohost peuvent-ils accéder à phpList?"
+                }
             },
             {
                 "name": "language",

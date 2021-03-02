@@ -1,5 +1,7 @@
 # Phplist pour YunoHost
 
+[![Integration level](https://dash.yunohost.org/integration/phplist.svg)](https://dash.yunohost.org/appci/app/phplist)
+
 > Ce package vous permet d'installer [Phplist] (https://www.phplist.org/) sur un serveur YunoHost.  
 Si vous n'avez pas YunoHost, veuillez consulter [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
 
