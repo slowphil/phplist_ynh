@@ -154,10 +154,57 @@ cp -R "$unpackdir/public_html/lists" "$final_path/"
 
 ynh_secure_remove $unpackdir
 
+# use extended config file
+
+mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
+
+#change config parameters for yunohost, disable built-in trackers
+# fix ui for visitors, fix display of captcha images
+# see details in install script @ https://github.com/slowphil/phplist_ynh/commit/83e5d21b4dae10acf67da1a6212229ad698057a4
+cd $final_path/lists
+patch -i /$YNH_CWD/../sources/patches/patch_phplist.diff -p1
+
+#make soft links (can't make them by patching)
+ln -sr $final_path/lists/admin/images/power-phplist.png  $final_path/lists/admin/images/powerphplist.png
+ln -sr admin/ui ui
+ln -sr admin/js/phplistapp.js js/phplistapp.js
+
+#remove updater code (updates handled by phplist_ynh)
+ynh_secure_remove "$final_path/lists/updater"
+
+# suppress remnants of old interface no longer fully supported
+ynh_secure_remove "$final_path/lists/admin/.minceconf"
+
+# API
+if true; then
+  # API is disabled by default, just suppress the corresponding code
+  ynh_secure_remove base # that's the API
+  ynh_secure_remove api.php
+else
+  # OTOH, if one needs the API, should enable it -- see https://www.phplist.org/manual/books/phplist-manual/page/api-and-integrations
+  # WARNING : untested
+  ynh_replace_string --match_string="{ view_response_listener: { enabled: false } }" --replace_string="{ view_response_listener: { enabled: true } }" --target_file="base/config/config_modules.yml"
+fi
+
+if [ "$language" != "en" ]; then
+  ynh_replace_string --match_string="\$default_system_language = 'en';" --replace_string="\$default_system_language = '$language';" --target_file="$final_path/lists/config/config.php"
+fi 
+
+if [ "$language" = "fr" ]; then
+  ynh_replace_string --match_string="\$language_module = 'english.inc';" --replace_string="\$language_module = 'french.inc';" --target_file="$final_path/lists/config/config.php"
+  #fix many untranslated texts
+  patch -i /$YNH_CWD/../sources/patches/defaultconfig-fr.diff $final_path/lists/admin/defaultconfig.php
+  patch -i /$YNH_CWD/../sources/patches/lib-fr.diff $final_path/lists/admin/lib.php
+    #the patch applies to our already modified file!
+  patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin-fr.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
+fi 
+ 
 ynh_setup_source --dest_dir="$final_path/lists/securimage" --source_id="securimage"
-ynh_setup_source --dest_dir="$final_path/lists/admin/plugins/" --source_id="captchaplugin"
 
+#fix securimage for captcha plugin -- see https://resources.phplist.com/plugin/captcha#change_to_the_securimage_code
+ynh_replace_string --match_string="public \$session_name   = null;" --replace_string="public \$session_name   = 'phpListSession';" --target_file="$final_path/lists/securimage/securimage.php"
 
+cd $YNH_CWD
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -227,13 +274,6 @@ ynh_script_progression --message="Configuring a systemd service..." --time --wei
 ### `ynh_replace_string` is used to replace a string in a file.
 ### (It's compatible with sed regular expressions syntax)
 
-# use extended config file
-
-mv "$final_path/lists/config/config.php" "$final_path/lists/config/config_short.php"
-mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
-echo "\$plugins_autoenable = array('YunoSSOPlugin', 'CommonPlugin', 'CaptchaPlugin');" >> "$final_path/lists/config/config.php"
-echo "\$developer_email = 'none';" >> "$final_path/lists/config/config.php"  #see https://github.com/phpList/phplist3/issues/718
-
 # adjust $pageroot = $path_url
 # from phplist :
 # Warning: Do not change this after installation. You can only change this before you install and initialise phpList.
@@ -251,88 +291,6 @@ ynh_replace_string --match_string="\$database_password = 'phplist';" --replace_s
 
 #  customize for distiguishing possible multiple instances
 ynh_replace_string --match_string="\$GLOBALS['installation_name'] = 'phpList';" --replace_string="\$GLOBALS['installation_name'] = '${app}';" --target_file="$final_path/lists/admin/init.php"   
-
-if [ "$language" != "en" ]; then
-  ynh_replace_string --match_string="\$default_system_language = 'en';" --replace_string="\$default_system_language = '$language';" --target_file="$final_path/lists/config/config.php"
-fi 
-
-if [ "$language" = "fr" ]; then
-  ynh_replace_string --match_string="\$language_module = 'english.inc';" --replace_string="\$language_module = 'french.inc';" --target_file="$final_path/lists/config/config.php"
-  #fix many untranslated texts
-  patch -i /$YNH_CWD/../sources/patches/defaultconfig-fr.diff $final_path/lists/admin/defaultconfig.php
-  patch -i /$YNH_CWD/../sources/patches/lib-fr.diff $final_path/lists/admin/lib.php
-fi 
-
-#toggle test mode off (enable sending) -use actions instead
-#ynh_replace_string --match_string="(\"TEST\",1)" --replace_string="(\"TEST\",0)" --target_file="$final_path/lists/config/config.php"
-
-#disable tracking by default
-ynh_replace_string --match_string="// define('ALWAYS_ADD_USERTRACK',0);" --replace_string="define('ALWAYS_ADD_USERTRACK',0);" --target_file="$final_path/lists/config/config.php"
-ynh_replace_string --match_string="define('CLICKTRACK', 1);" --replace_string="define('CLICKTRACK', 0);" --target_file="$final_path/lists/config/config.php"
-
-#disable stealth tracking by phplist.com - tracking should always be opt-in only!
-ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'" --replace_string="./images" --target_file="$final_path/lists/admin/lib.php"
-ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/' . \$v . '" --replace_string="./images" --target_file="$final_path/lists/admin/defaultconfig.php"
-ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/'.\$v.'" --replace_string="./images" --target_file="$final_path/lists/admin/connect.php"
-ynh_replace_string --match_string="https://d3u7tsw7cvar0t.cloudfront.net" --replace_string="" --target_file="$final_path/lists/admin/init.php"
-ynh_replace_string --match_string="http://powered.phplist.com/images" --replace_string="" --target_file="$final_path/lists/admin/init.php"
-ynh_replace_string --match_string="https://d3u7tsw7cvar0t.cloudfront.net" --replace_string="." --target_file="$final_path/lists/admin/connect.php"
-ynh_replace_string --match_string="define('TLD_AUTH_LIST', 'https://www.phplist.com/files/tlds-alpha-by-domain.txt');" --replace_string="" --target_file="$final_path/lists/admin/init.php"
-ynh_replace_string --match_string="define('TLD_AUTH_MD5', 'https://www.phplist.com/files/tlds-alpha-by-domain.txt.md5');" --replace_string="" --target_file="$final_path/lists/admin/init.php"
-ynh_replace_string --match_string="//define('TLD_AUTH_" --replace_string="define('TLD_AUTH_" --target_file="$final_path/lists/admin/init.php"
-
-
-#~ admin/lib.php:    $pixel = '<img src="'.PHPLIST_POWEREDBY_URLROOT.'/pixel.gif" width="1" height="1" />';
-#~ admin/defaultconfig.php:    $PoweredBy = '<p align="left"><a href="https://www.phplist.com"><img src="'.PHPLIST_POWEREDBY_URLROOT.'/' . $v . '/power-phplist.png" width="88" height="31" title="powered by phplist" alt="powered by phplist" border="0" /></a></p>';
-#~ admin/connect.php:    $PoweredByImage = '<p class="poweredby" style="text-align:center"><a href="https://www.phplist.com/poweredby?utm_source=pl'.$v.'&amp;utm_medium=poweredhostedimg&amp;utm_campaign=phpList" title="visit the phpList website" ><img src="'.PHPLIST_POWEREDBY_URLROOT.'/'.$v.'/power-phplist.png" title="powered by phpList version '.$v.', &copy; phpList ltd" alt="powered by phpList '.$v.', &copy; phpList ltd" border="0" /></a></p>';
-#~ admin/init.php.back:        define('PHPLIST_POWEREDBY_URLROOT', 'https://d3u7tsw7cvar0t.cloudfront.net/images');
-#~ admin/init.php.back:        define('PHPLIST_POWEREDBY_URLROOT', 'http://powered.phplist.com/images');
-#~ admin/connect.php:        $pixel = '<img src="https://d3u7tsw7cvar0t.cloudfront.net/images/pixel.gif" width="1" height="1" alt="" />';
-
-ln -sr $final_path/lists/admin/images/power-phplist.png  $final_path/lists/admin/images/powerphplist.png 
-ynh_replace_string --match_string="//define('ADMIN_PROTOCOL','https');" --replace_string="define('ADMIN_PROTOCOL','https');" --target_file="$final_path/lists/config/config.php"
-
-#updater : we want updates handled by yunohost entirely
-#disable updater
-ynh_replace_string --match_string="define('ALLOW_UPDATER', true);" --replace_string="define('ALLOW_UPDATER', false);" --target_file="$final_path/lists/config/config.php"
-#remove code
-ynh_secure_remove "$final_path/lists/updater"
-
-# suppress remnants of old interface no longer fully supported
-ynh_secure_remove "$final_path/lists/admin/.minceconf"
-
-# Visitors need to access a few files inside admin/ui
-# However, below we define a specific yunohost permission for accessing admin/ so that only some users have superuser privilieges in phplist
-# In order to not break ui for visitores, we symlink these files outside of admin/
-cd "$final_path/lists"
-#~ sed -i "s|admin/ui/phplist-ui-bootlist/js|ui/phplist-ui-bootlist/js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
-#~ sed -i "s|admin/js/phplistapp.js|js/phplistapp.js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
-#~ sed -i "s|admin/ui/phplist-ui-bootlist/css|ui/phplist-ui-bootlist/css|g"  admin/ui/phplist-ui-bootlist/frontendheader.php
-ynh_replace_string --match_string="admin/ui/phplist-ui-bootlist/js" --replace_string="ui/phplist-ui-bootlist/js" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendfooter.php"
-ynh_replace_string --match_string="admin/js/phplistapp.js" --replace_string="js/phplistapp.js" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendfooter.php"
-ynh_replace_string --match_string="admin/ui/phplist-ui-bootlist/css" --replace_string="ui/phplist-ui-bootlist/css" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendheader.php"
-ln -sr admin/ui ui
-ln -sr admin/js/phplistapp.js js/phplistapp.js
- 
-# API
-if true; then
-  # API is disabled by default, just suppress the corresponding code
-  ynh_secure_remove base # that's the API
-  ynh_secure_remove api.php
-else
-  # OTOH, if one needs the API, should enable it -- see https://www.phplist.org/manual/books/phplist-manual/page/api-and-integrations
-  # WARNING : untested
-  ynh_replace_string --match_string="{ view_response_listener: { enabled: false } }" --replace_string="{ view_response_listener: { enabled: true } }" --target_file="base/config/config_modules.yml"
-fi
-
-#fix securimage for captcha plugin -- see https://resources.phplist.com/plugin/captcha#change_to_the_securimage_code
-ynh_replace_string --match_string="public \$session_name   = null;" --replace_string="public \$session_name   = 'phpListSession';" --target_file="$final_path/lists/securimage/securimage.php"
-#patch captcha plugin to pass actual path to securimage call (otherwise images do not load)
-patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
-if [ "$language" = "fr" ]; then
-  #the patch applies to our already modified file!
-  patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin-fr.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
-fi 
 
 #=================================================
 # SETUP APPLICATION WITH CURL

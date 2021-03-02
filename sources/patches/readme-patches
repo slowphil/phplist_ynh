@@ -1,4 +1,4 @@
 The patch files *-fr.diff are applied only when the app is installed in French language, to fix untranslated sentences.
-The CaptchaPlugin.diff fixes the display of images, it is applied unconditioannly.
-All patches have a .diff (not .patch) extension in order to not be applied automatically by the install script (otherwise some patches would fail since we install from different sources sequentially).
+The patch_phplist.diff adjusts phplist for use with yunohost, in various ways (see install scirpt at commit https://github.com/slowphil/phplist_ynh/commit/83e5d21b4dae10acf67da1a6212229ad698057a4 or earlier).
+All patches have a .diff (not .patch) extension in order to not be applied automatically by the install script, on purpose (see install script).
 

@@ -1,7 +1,0 @@
-SOURCE_URL=https://github.com/bramley/phplist-plugin-captcha/archive/2.2.0.tar.gz
-SOURCE_SUM=ee8d82a513af16daa139bf104f343fb51a2d3d4ef0855dece15db292f9210a38
-SOURCE_SUM_PRG=sha256sum
-SOURCE_FORMAT=tar.gz
-SOURCE_IN_SUBDIR=2
-SOURCE_FILENAME=phplist-plugin-captcha-2.2.0.tar.gz
-SOURCE_EXTRACT=true

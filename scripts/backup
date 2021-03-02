@@ -26,9 +26,9 @@ app=$YNH_APP_INSTANCE_NAME
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-with_mysql=$(ynh_app_setting_get --app=$app --key=with_mysql)
 test_mode=$(ynh_app_setting_get --app=$app --key=test_mode)
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
+
 
 #=================================================
 # DECLARE DATA AND CONF FILES TO BACKUP
@@ -40,6 +40,9 @@ ynh_print_info --message="Declaring files to be backed up..."
 #=================================================
 
 ynh_backup --src_path="$final_path"
+
+#In principle we don't need all that; only the files that where customized during install
+#and that a fresh install would not restore as is...
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
@@ -57,18 +60,19 @@ ynh_backup --src_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 # BACKUP THE MYSQL DATABASE
 #=================================================
 
-if [ $with_mysql -eq 1 ]
-then
-    ynh_script_progression --message="Backing up the MySQL database..."
-    ynh_mysql_dump_db --database="$db_name" > db.sql
-fi
+ynh_script_progression --message="Backing up the MySQL database..."
+ynh_mysql_dump_db --database="$db_name" > db.sql
 
 #=================================================
 # BACKUP SPECIFIC FILES
 #=================================================
-#backup files modified at install
-ynh_backup "$final_path/lists/config/config.php"
-ynh_backup "$final_path/lists/admin/defaultconfig.php"
+#backup files modified at customization step of install
+#ynh_backup "$final_path/lists/config/config.php"
+#ynh_backup "$final_path/lists/admin/init.php"
+#also backup files patched for language, just in case the reinstall is done with other language
+#ynh_backup "$final_path/lists/admin/defaultconfig.php"
+#ynh_backup "$final_path/lists/admin/lib.php"
+#ynh_backup "$final_path/lists/admin/plugins/CaptchaPlugin.php"
 #=================================================
 # END OF SCRIPT
 #=================================================

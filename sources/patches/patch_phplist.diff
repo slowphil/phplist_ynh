@@ -1,0 +1,180 @@
+--- ../sflist-orig/admin/connect.php	2021-03-02 10:24:26.324075645 +0100
++++ ./admin/connect.php	2021-03-02 10:27:39.240866757 +0100
+@@ -290,7 +290,7 @@
+     $v = VERSION;
+ }
+ if (REGISTER) {
+-    $PoweredByImage = '<p class="poweredby" style="text-align:center"><a href="https://www.phplist.com/poweredby?utm_source=pl'.$v.'&amp;utm_medium=poweredhostedimg&amp;utm_campaign=phpList" title="visit the phpList website" ><img src="'.PHPLIST_POWEREDBY_URLROOT.'/'.$v.'/power-phplist.png" title="powered by phpList version '.$v.', &copy; phpList ltd" alt="powered by phpList '.$v.', &copy; phpList ltd" border="0" /></a></p>';
++    $PoweredByImage = '<p class="poweredby" style="text-align:center"><a href="https://www.phplist.com/poweredby?utm_source=pl'.$v.'&amp;utm_medium=poweredhostedimg&amp;utm_campaign=phpList" title="visit the phpList website" ><img src="./images/power-phplist.png" title="powered by phpList version '.$v.', &copy; phpList ltd" alt="powered by phpList '.$v.', &copy; phpList ltd" border="0" /></a></p>';
+ } else {
+     $PoweredByImage = '<p class="poweredby" style="text-align:center"><a href="https://www.phplist.com/poweredby?utm_source=pl'.$v.'&amp;utm_medium=poweredlocalimg&amp;utm_campaign=phpList" title="visit the phpList website"><img src="images/power-phplist.png" title="powered by phpList version '.$v.', &copy; phpList ltd" alt="powered by phpList '.$v.', &copy; phpList ltd" border="0"/></a></p>';
+ }
+@@ -906,7 +906,7 @@
+             break;
+     }
+     if (TEST && REGISTER) {
+-        $pixel = '<img src="https://d3u7tsw7cvar0t.cloudfront.net/images/pixel.gif" width="1" height="1" alt="" />';
++        $pixel = '<img src="./images/pixel.gif" width="1" height="1" alt="" />';
+     } else {
+         $pixel = '';
+     }
+--- ../sflist-orig/admin/defaultconfig.php	2021-03-02 10:24:26.324075645 +0100
++++ ./admin/defaultconfig.php	2021-03-02 10:27:39.200866593 +0100
+@@ -711,7 +711,7 @@
+     } else {
+         $v = VERSION;
+     }
+-    $PoweredBy = '<p align="left"><a href="https://www.phplist.com"><img src="'.PHPLIST_POWEREDBY_URLROOT.'/' . $v . '/power-phplist.png" width="88" height="31" title="powered by phplist" alt="powered by phplist" border="0" /></a></p>';
++    $PoweredBy = '<p align="left"><a href="https://www.phplist.com"><img src="./images/power-phplist.png" width="88" height="31" title="powered by phplist" alt="powered by phplist" border="0" /></a></p>';
+ } else {
+     $PoweredBy = '<center><a href="https://www.phplist.com"><img src="images/power-phplist.png" width="88" height="31" title="powered by phplist" alt="powered by phplist" border="0" /></a></center>';
+ }
+--- ../sflist-orig/admin/init.php	2021-03-02 10:24:26.328075662 +0100
++++ ./admin/init.php	2021-03-02 10:27:39.260866840 +0100
+@@ -189,10 +189,10 @@
+ }
+ define('TRANSLATIONS_XML', 'https://translate.phplist.org/translations.xml');
+ 
+-//define('TLD_AUTH_LIST','http://data.iana.org/TLD/tlds-alpha-by-domain.txt');
+-//define('TLD_AUTH_MD5','http://data.iana.org/TLD/tlds-alpha-by-domain.txt.md5');
+-define('TLD_AUTH_LIST', 'https://www.phplist.com/files/tlds-alpha-by-domain.txt');
+-define('TLD_AUTH_MD5', 'https://www.phplist.com/files/tlds-alpha-by-domain.txt.md5');
++define('TLD_AUTH_LIST','http://data.iana.org/TLD/tlds-alpha-by-domain.txt');
++define('TLD_AUTH_MD5','http://data.iana.org/TLD/tlds-alpha-by-domain.txt.md5');
++
++
+ define('TLD_REFETCH_TIMEOUT', 2592000); //# 30 days
+ if (!defined('PQAPI_URL')) {
+     define('PQAPI_URL', 'https://pqapi.phplist.com/1/t/pqapi');
+@@ -614,9 +614,9 @@
+ }
+ if (!defined('PHPLIST_POWEREDBY_URLROOT')) {
+     if ($GLOBALS['public_scheme'] == 'https') {
+-        define('PHPLIST_POWEREDBY_URLROOT', 'https://d3u7tsw7cvar0t.cloudfront.net/images');
++        define('PHPLIST_POWEREDBY_URLROOT', '/images');
+     } else {
+-        define('PHPLIST_POWEREDBY_URLROOT', 'http://powered.phplist.com/images');
++        define('PHPLIST_POWEREDBY_URLROOT', '');
+     }
+ }
+ 
+--- ../sflist-orig/admin/lib.php	2021-03-02 10:24:26.328075662 +0100
++++ ./admin/lib.php	2021-03-02 10:27:39.192866561 +0100
+@@ -670,7 +670,7 @@
+ }
+ 
+ if (TEST && REGISTER) {
+-    $pixel = '<img src="'.PHPLIST_POWEREDBY_URLROOT.'/pixel.gif" width="1" height="1" />';
++    $pixel = '<img src="./images/pixel.gif" width="1" height="1" />';
+ }
+ 
+ function timeDiff($time1, $time2)
+--- ../sflist-orig/admin/plugins/CaptchaPlugin.php	2021-03-02 11:03:48.469837726 +0100
++++ ./admin/plugins/CaptchaPlugin.php	2021-03-02 11:06:42.162558316 +0100
+@@ -28,13 +28,6 @@
+     public $documentationUrl = 'https://resources.phplist.com/plugin/captcha';
+     public $authors = 'Duncan Cameron';
+     public $settings = array(
+-        'captcha_securimage_path' => array(
+-            'description' => 'Path to the securimage directory (from the web root)',
+-            'type' => 'text',
+-            'value' => '/securimage',
+-            'allowempty' => false,
+-            'category' => 'Captcha',
+-        ),
+         'captcha_bot_email' => array(
+             'description' => 'Whether to validate the email address using bot bouncer',
+             'type' => 'boolean',
+@@ -149,9 +142,7 @@
+ 
+     private function captchaEnabled()
+     {
+-        $path = trim(getConfig('captcha_securimage_path'), '/');
+-
+-        if (!file_exists($f = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . "/$path/securimage.php")) {
++        if (!file_exists($f = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . "/securimage/securimage.php")) {
+             logEvent("securimage file '$f' not found");
+ 
+             return false;
+@@ -206,6 +197,7 @@
+         if (!empty($pageData['captcha_include']) && $this->captchaEnabled()) {
+             return Securimage::getCaptchaHtml(
+                 array(
++                    'securimage_path' => $GLOBALS['pageroot'].'/securimage',
+                     'input_text' => getConfig('captcha_captcha_prompt'),
+                 )
+             );
+--- ../sflist-orig/admin/ui/phplist-ui-bootlist/frontendfooter.php	2021-03-02 11:02:00.693390318 +0100
++++ ./admin/ui/phplist-ui-bootlist/frontendfooter.php	2021-03-02 11:04:29.106006361 +0100
+@@ -12,9 +12,9 @@
+ </div>
+ </div>
+ 
+-<script type="text/javascript" src="admin/ui/phplist-ui-bootlist/js/jquery.min.js"></script>
+-<script type="text/javascript" src="admin/js/phplistapp.js"></script>
+-<script type="text/javascript" src="admin/ui/phplist-ui-bootlist/js/dist/phpList_ui_bootlist.min.js"></script>
++<script type="text/javascript" src="ui/phplist-ui-bootlist/js/jquery.min.js"></script>
++<script type="text/javascript" src="js/phplistapp.js"></script>
++<script type="text/javascript" src="ui/phplist-ui-bootlist/js/dist/phpList_ui_bootlist.min.js"></script>
+ <script>
+ /* do not remove this from here */
+ $(document).ready(function(){
+--- ../sflist-orig/admin/ui/phplist-ui-bootlist/frontendheader.php	2021-03-02 11:02:00.693390318 +0100
++++ ./admin/ui/phplist-ui-bootlist/frontendheader.php	2021-03-02 11:04:38.546045532 +0100
+@@ -2,7 +2,7 @@
+ <meta name="theme-color" content="#2C2C2C"/>
+ <link rel="apple-touch-icon" href="./images/phplist-touch-icon.png" />
+ <link rel="apple-touch-icon-precomposed" href="./images/phplist-touch-icon.png" />
+-<link rel="stylesheet" href="admin/ui/phplist-ui-bootlist/css/style.css" />
++<link rel="stylesheet" href="ui/phplist-ui-bootlist/css/style.css" />
+ </head>
+ 
+ <body class="fixed">
+--- ../sflist-orig/config/config.php	2021-03-02 10:24:26.332075678 +0100
++++ ./config/config.php	2021-03-02 10:28:36.709102371 +0100
+@@ -638,13 +638,13 @@
+ // To add it to your campaigns, you need to add [USERTRACK] somewhere.
+ // From version 3 onwards, this is automatically done with the following setting. If you do not
+ // want it, you can switch it off here, by uncommenting the next line
+-// define('ALWAYS_ADD_USERTRACK',0);
++define('ALWAYS_ADD_USERTRACK',0);
+ 
+ // Click tracking
+ // If you set this to 1, all links in your emails will be converted to links that
+ // go via phpList. This will make sure that clicks are tracked. Default: 1
+ // If you disable a URL conversion, set to 0.
+-define('CLICKTRACK', 1);
++define('CLICKTRACK', 0);
+ 
+ // Click track, list detail
+ // if you enable this, you will get some extra statistics about unique users who have clicked the
+@@ -841,7 +841,7 @@
+ // Admin protocol
+ // similar to the above, if you need to force the admin pages on either http or https (eg when behind a
+ // proxy that prevents proper auto-detection), you can set it here
+-//define('ADMIN_PROTOCOL','https');
++define('ADMIN_PROTOCOL','https');
+ 
+ // advanced bounce processing
+ // with advanced bounce handling you are able to define regular expressions that match bounces and the
+@@ -875,7 +875,7 @@
+ define('FORWARD_ALTERNATIVE_CONTENT', 0);
+ 
+ // To disable the automatic updater change the value to false. By default the value is true.
+-define('ALLOW_UPDATER', true);
++define('ALLOW_UPDATER', false);
+ 
+ // Google mail Feedback loop configuration
+ // When feedback loop is configured in Google mail according to https://support.google.com/mail/answer/6254652?hl=en
+@@ -884,4 +884,8 @@
+ 
+ // For ajax based signup forms (https://discuss.phplist.org/t/solved-ajax-subscribe-api/974) the access-control-allow-origin header has to be set properly.
+ // Add the addresses of the websites you want to allow to perform ajax requests to PHPList.
+-define('ACCESS_CONTROL_ALLOW_ORIGINS', ['https://example.com','https://example.org']);
+\ Pas de fin de ligne à la fin du fichier
++define('ACCESS_CONTROL_ALLOW_ORIGINS', ['https://example.com','https://example.org']);
++
++$plugins_autoenable = array('YunoSSOPlugin', 'CommonPlugin', 'CaptchaPlugin');
++// see https://github.com/phpList/phplist3/issues/718
++$developer_email = 'none';
+
