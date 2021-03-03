@@ -106,7 +106,13 @@ fi
 #=================================================
 # SPECIFIC MODIFICATIONS
 #=================================================
-# ...
+if [ "$old_path" != "$new_path" ] ; then
+  if [ "new_path" = "/" ] ; then
+    ynh_replace_string --match_string="\$pageroot = '$old_path';" --replace_string="\$pageroot = '';" --target_file="$final_path/lists/config/config.php"
+  else
+    ynh_replace_string --match_string="\$pageroot = '$old_path';" --replace_string="\$pageroot = 'new_path';" --target_file="$final_path/lists/config/config.php"
+  fi
+fi
 #=================================================
 
 #=================================================

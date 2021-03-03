@@ -234,7 +234,13 @@ ynh_script_progression --message="Configuring PHP-FPM..." --weight=4
 ###		- And the section "PHP-FPM CONFIGURATION" in the upgrade script
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config --usage=low --footprint=low ;  #values OK?
+#values OK?
+fpm_footprint=low
+fpm_usage=low
+
+ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint ;  
+ynh_app_setting_set --app=$app --key=fpm_footprint --value=$fpm_footprint
+ynh_app_setting_set --app=$app --key=fpm_usage --value=$fpm_usage
 
 #=================================================
 # SPECIFIC SETUP
@@ -249,7 +255,7 @@ ynh_add_fpm_config --usage=low --footprint=low ;  #values OK?
 #=================================================
 # MODIFY A CONFIG FILE # Needs be done before SETUP APPLICATION WITH CURL
 #=================================================
-ynh_script_progression --message="Initializing database..." --weight=7
+ynh_script_progression --message="Initializing database..." --weight=10
 
 ### `ynh_replace_string` is used to replace a string in a file.
 ### (It's compatible with sed regular expressions syntax)

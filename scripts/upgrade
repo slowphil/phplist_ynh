@@ -12,7 +12,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --time --weight=1
+ynh_script_progression --message="Loading installation settings..." --weight=1
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -22,10 +22,11 @@ is_public=$(ynh_app_setting_get --app=$app --key=is_public)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 language=$(ynh_app_setting_get --app=$app --key=language)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$db_name
 with_mysql=$(ynh_app_setting_get --app=$app --key=with_mysql)
 password=$(ynh_app_setting_get --app=$app --key=password)
 
-admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
+#admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
 
 db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
@@ -52,7 +53,7 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_script_progression --message="Ensuring downward compatibility..." --time --weight=1
+ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
 #
 # N.B. : the followings setting migrations snippets are provided as *EXAMPLES*
@@ -95,7 +96,7 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --time --weight=1
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."  --weight=3
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -122,32 +123,89 @@ ynh_abort_if_errors
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Upgrading source files..." --time --weight=1
+	ynh_script_progression --message="Upgrading source files..."  --weight=20
 
 	# Download, check integrity, uncompress and patch the source from app.src
-  unpackdir="/tmp/phplist_src"
-  if [ -d $unpackdir ]
-  then
-      ynh_secure_remove $unpackdir
-  fi 
-  mkdir $unpackdir
-  ynh_setup_source --dest_dir=$unpackdir
-  
-  mkdir -p "$final_path"
-  
-  # Copy files to the right place
-  cp -R "$unpackdir/public_html/lists" "$final_path/"
-  
-  ynh_secure_remove $unpackdir
-  
-  ynh_setup_source --dest_dir="$final_path/lists/securimage" --source_id="securimage"
+unpackdir="/tmp/phplist_src"
+if [ -d $unpackdir ]
+then
+    ynh_secure_remove $unpackdir
+fi 
+mkdir $unpackdir
+ynh_setup_source --dest_dir=$unpackdir
+
+mkdir -p "$final_path"
+
+# Copy files to the right place
+# We do not clean the destination so that any additional plugin remains installed
+cp -R "$unpackdir/public_html/lists" "$final_path/"
+
+ynh_secure_remove $unpackdir
+
+# use extended config file
+
+mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
+
+#change config parameters for yunohost, disable built-in trackers
+# fix ui for visitors, fix display of captcha images
+# see details in install script @ https://github.com/slowphil/phplist_ynh/commit/83e5d21b4dae10acf67da1a6212229ad698057a4
+cd $final_path/lists
+patch -i /$YNH_CWD/../sources/patches/patch_phplist.diff -p1
+
+#make soft links (can't make them by patching)
+if [ ! -L $final_path/lists/admin/images/powerphplist.png ] ; then
+  ln -sr $final_path/lists/admin/images/power-phplist.png  $final_path/lists/admin/images/powerphplist.png
+fi
+if [ ! -L $final_path/lists/ui ] ; then
+  ln -sr admin/ui ui
+fi
+if [ ! -L $final_path/lists/js/phplistapp.js ] ; then
+  ln -sr admin/js/phplistapp.js js/phplistapp.js
+fi
+
+#remove updater code (updates handled by phplist_ynh)
+ynh_secure_remove "$final_path/lists/updater"
+
+# suppress remnants of old interface no longer fully supported
+ynh_secure_remove "$final_path/lists/admin/.minceconf"
+
+# API
+if true; then
+  # API is disabled by default, just suppress the corresponding code
+  ynh_secure_remove base # that's the API
+  ynh_secure_remove api.php
+else
+  # OTOH, if one needs the API, should enable it -- see https://www.phplist.org/manual/books/phplist-manual/page/api-and-integrations
+  # WARNING : untested
+  ynh_replace_string --match_string="{ view_response_listener: { enabled: false } }" --replace_string="{ view_response_listener: { enabled: true } }" --target_file="base/config/config_modules.yml"
+fi
+
+if [ "$language" != "en" ]; then
+  ynh_replace_string --match_string="\$default_system_language = 'en';" --replace_string="\$default_system_language = '$language';" --target_file="$final_path/lists/config/config.php"
+fi 
+
+if [ "$language" = "fr" ]; then
+  ynh_replace_string --match_string="\$language_module = 'english.inc';" --replace_string="\$language_module = 'french.inc';" --target_file="$final_path/lists/config/config.php"
+  #fix many untranslated texts
+  patch -i /$YNH_CWD/../sources/patches/defaultconfig-fr.diff $final_path/lists/admin/defaultconfig.php
+  patch -i /$YNH_CWD/../sources/patches/lib-fr.diff $final_path/lists/admin/lib.php
+    #the patch applies to our already modified file!
+  patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin-fr.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
+fi 
+ 
+ynh_setup_source --dest_dir="$final_path/lists/securimage" --source_id="securimage"
+
+#fix securimage for captcha plugin -- see https://resources.phplist.com/plugin/captcha#change_to_the_securimage_code
+ynh_replace_string --match_string="public \$session_name   = null;" --replace_string="public \$session_name   = 'phpListSession';" --target_file="$final_path/lists/securimage/securimage.php"
+
+cd $YNH_CWD
 fi
 
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --time --weight=1
+ynh_script_progression --message="Upgrading NGINX web server configuration..."  --weight=1
 
 # Create a dedicated NGINX config
 ynh_add_nginx_config
@@ -155,14 +213,14 @@ ynh_add_nginx_config
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --time --weight=1
+ynh_script_progression --message="Upgrading dependencies..." --weight=5
 
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --time --weight=1
+ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
 
 # Create a dedicated user (if not existing)
 ynh_system_user_create --username=$app --home_dir="$final_path"
@@ -170,7 +228,7 @@ ynh_system_user_create --username=$app --home_dir="$final_path"
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading PHP-FPM configuration..." --time --weight=1
+ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
 
 # Create a dedicated PHP-FPM config
 ynh_add_fpm_config
@@ -191,24 +249,11 @@ ynh_add_fpm_config
 
 ### Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
 ### And create a backup of this file if the checksum is different. So the file will be backed up if the admin had modified it.
-ynh_backup_if_checksum_is_different --file="$final_path/CONFIG_FILE"
-
-ynh_replace_string --match_string="match_string" --replace_string="replace_string" --target_file="$final_path/CONFIG_FILE"
+ynh_backup_if_checksum_is_different --file="$final_path/lists/config/config.ph"
 
 # adjust config files
-# the replacements we perform here were working for the version intitially packaged; they are not garabtied to work for later version...
+# the replacements we perform here were working for the version intitially packaged; they are not garantied to work for later version...
 
-# use extended config file
-
-mv "$final_path/lists/config/config.php" "$final_path/lists/config/config_short.php"
-mv "$final_path/lists/config/config_extended.php" "$final_path/lists/config/config.php"
-echo "\$plugins_autoenable = array('YunoSSOPlugin', 'CommonPlugin', 'CaptchaPlugin');" >> "$final_path/lists/config/config.php"
-echo "\$developer_email = 'none';" >> "$final_path/lists/config/config.php"  #see https://github.com/phpList/phplist3/issues/718
-
-# adjust $pageroot = $path_url
-# from phplist :
-# Warning: Do not change this after installation. You can only change this before you install and initialise phpList.
-# If you install phpList in the document root then the value should be an empty string, not '/'.
 if [ "$path_url" = "/" ] ; then
   ynh_replace_string --match_string="\$pageroot = '/lists';" --replace_string="\$pageroot = '';" --target_file="$final_path/lists/config/config.php"
 else
@@ -223,90 +268,6 @@ ynh_replace_string --match_string="\$database_password = 'phplist';" --replace_s
 #  customize for distiguishing possible multiple instances
 ynh_replace_string --match_string="\$GLOBALS['installation_name'] = 'phpList';" --replace_string="\$GLOBALS['installation_name'] = '${app}';" --target_file="$final_path/lists/admin/init.php"   
 
-if [ "$language" != "en" ]; then
-  ynh_replace_string --match_string="\$default_system_language = 'en';" --replace_string="\$default_system_language = '$language';" --target_file="$final_path/lists/config/config.php"
-fi 
-
-if [ "$language" = "fr" ]; then
-  ynh_replace_string --match_string="\$language_module = 'english.inc';" --replace_string="\$language_module = 'french.inc';" --target_file="$final_path/lists/config/config.php"
-  #fix many untranslated texts
-  patch -i /$YNH_CWD/../sources/patches/defaultconfig-fr.diff $final_path/lists/admin/defaultconfig.php
-  patch -i /$YNH_CWD/../sources/patches/lib-fr.diff $final_path/lists/admin/lib.php
-fi 
-
-#toggle test mode off (enable sending) -use actions instead
-#ynh_replace_string --match_string="(\"TEST\",1)" --replace_string="(\"TEST\",0)" --target_file="$final_path/lists/config/config.php"
-
-#disable tracking by default
-ynh_replace_string --match_string="// define('ALWAYS_ADD_USERTRACK',0);" --replace_string="define('ALWAYS_ADD_USERTRACK',0);" --target_file="$final_path/lists/config/config.php"
-ynh_replace_string --match_string="define('CLICKTRACK', 1);" --replace_string="define('CLICKTRACK', 0);" --target_file="$final_path/lists/config/config.php"
-
-#disable stealth tracking by phplist.com - tracking should always be opt-in only!
-ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'" --replace_string="./images" --target_file="$final_path/lists/admin/lib.php"
-ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/' . \$v . '" --replace_string="./images" --target_file="$final_path/lists/admin/defaultconfig.php"
-ynh_replace_string --match_string="'.PHPLIST_POWEREDBY_URLROOT.'/'.\$v.'" --replace_string="./images" --target_file="$final_path/lists/admin/connect.php"
-ynh_replace_string --match_string="https://d3u7tsw7cvar0t.cloudfront.net" --replace_string="" --target_file="$final_path/lists/admin/init.php"
-ynh_replace_string --match_string="http://powered.phplist.com/images" --replace_string="" --target_file="$final_path/lists/admin/init.php"
-ynh_replace_string --match_string="https://d3u7tsw7cvar0t.cloudfront.net" --replace_string="." --target_file="$final_path/lists/admin/connect.php"
-ynh_replace_string --match_string="define('TLD_AUTH_LIST', 'https://www.phplist.com/files/tlds-alpha-by-domain.txt');" --replace_string="" --target_file="$final_path/lists/admin/init.php"
-ynh_replace_string --match_string="define('TLD_AUTH_MD5', 'https://www.phplist.com/files/tlds-alpha-by-domain.txt.md5');" --replace_string="" --target_file="$final_path/lists/admin/init.php"
-ynh_replace_string --match_string="//define('TLD_AUTH_" --replace_string="define('TLD_AUTH_" --target_file="$final_path/lists/admin/init.php"
-
-
-#~ admin/lib.php:    $pixel = '<img src="'.PHPLIST_POWEREDBY_URLROOT.'/pixel.gif" width="1" height="1" />';
-#~ admin/defaultconfig.php:    $PoweredBy = '<p align="left"><a href="https://www.phplist.com"><img src="'.PHPLIST_POWEREDBY_URLROOT.'/' . $v . '/power-phplist.png" width="88" height="31" title="powered by phplist" alt="powered by phplist" border="0" /></a></p>';
-#~ admin/connect.php:    $PoweredByImage = '<p class="poweredby" style="text-align:center"><a href="https://www.phplist.com/poweredby?utm_source=pl'.$v.'&amp;utm_medium=poweredhostedimg&amp;utm_campaign=phpList" title="visit the phpList website" ><img src="'.PHPLIST_POWEREDBY_URLROOT.'/'.$v.'/power-phplist.png" title="powered by phpList version '.$v.', &copy; phpList ltd" alt="powered by phpList '.$v.', &copy; phpList ltd" border="0" /></a></p>';
-#~ admin/init.php.back:        define('PHPLIST_POWEREDBY_URLROOT', 'https://d3u7tsw7cvar0t.cloudfront.net/images');
-#~ admin/init.php.back:        define('PHPLIST_POWEREDBY_URLROOT', 'http://powered.phplist.com/images');
-#~ admin/connect.php:        $pixel = '<img src="https://d3u7tsw7cvar0t.cloudfront.net/images/pixel.gif" width="1" height="1" alt="" />';
-
-ln -sr $final_path/lists/admin/images/power-phplist.png  $final_path/lists/admin/images/powerphplist.png 
-ynh_replace_string --match_string="//define('ADMIN_PROTOCOL','https');" --replace_string="define('ADMIN_PROTOCOL','https');" --target_file="$final_path/lists/config/config.php"
-
-#updater : we want updates handled by yunohost entirely
-#disable updater
-ynh_replace_string --match_string="define('ALLOW_UPDATER', true);" --replace_string="define('ALLOW_UPDATER', false);" --target_file="$final_path/lists/config/config.php"
-#remove code
-ynh_secure_remove "$final_path/lists/updater"
-
-# suppress remnants of old interface no longer fully supported
-ynh_secure_remove "$final_path/lists/admin/.minceconf"
-
-# Visitors need to access a few files inside admin/ui
-# However, below we define a specific yunohost permission for accessing admin/ so that only some users have superuser privilieges in phplist
-# In order to not break ui for visitores, we symlink these files outside of admin/
-cd "$final_path/lists"
-#~ sed -i "s|admin/ui/phplist-ui-bootlist/js|ui/phplist-ui-bootlist/js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
-#~ sed -i "s|admin/js/phplistapp.js|js/phplistapp.js|g"  admin/ui/phplist-ui-bootlist/frontendfooter.php
-#~ sed -i "s|admin/ui/phplist-ui-bootlist/css|ui/phplist-ui-bootlist/css|g"  admin/ui/phplist-ui-bootlist/frontendheader.php
-ynh_replace_string --match_string="admin/ui/phplist-ui-bootlist/js" --replace_string="ui/phplist-ui-bootlist/js" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendfooter.php"
-ynh_replace_string --match_string="admin/js/phplistapp.js" --replace_string="js/phplistapp.js" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendfooter.php"
-ynh_replace_string --match_string="admin/ui/phplist-ui-bootlist/css" --replace_string="ui/phplist-ui-bootlist/css" --target_file="$final_path/lists/admin/ui/phplist-ui-bootlist/frontendheader.php"
-ln -sr admin/ui ui
-ln -sr admin/js/phplistapp.js js/phplistapp.js
- 
-# API
-if true; then
-  # API is disabled by default, just suppress the corresponding code
-  ynh_secure_remove base # that's the API
-  ynh_secure_remove api.php
-else
-  # OTOH, if one needs the API, should enable it -- see https://www.phplist.org/manual/books/phplist-manual/page/api-and-integrations
-  # WARNING : untested
-  ynh_replace_string --match_string="{ view_response_listener: { enabled: false } }" --replace_string="{ view_response_listener: { enabled: true } }" --target_file="base/config/config_modules.yml"
-fi
-
-#fix securimage for captcha plugin -- see https://resources.phplist.com/plugin/captcha#change_to_the_securimage_code
-ynh_replace_string --match_string="public \$session_name   = null;" --replace_string="public \$session_name   = 'phpListSession';" --target_file="$final_path/lists/securimage/securimage.php"
-#patch captcha plugin to pass actual path to securimage call (otherwise images do not load)
-patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
-if [ "$language" = "fr" ]; then
-  #the patch applies to our already modified file!
-  patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin-fr.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
-fi 
-
-
-
 # Recalculate and store the checksum of the file for the next upgrade.
 ynh_store_file_checksum --file="$final_path/lists/config/config.php"
 
@@ -318,17 +279,15 @@ ynh_store_file_checksum --file="$final_path/lists/config/config.php"
 
 # Set permissions on app files
 chown -R root: $final_path
-# for enabling plugins installation
-chown -R $app: "$final_path/lists/admin/plugins"
 
 
 #=================================================
 # SETUP LOGROTATE
 #=================================================
-ynh_script_progression --message="Upgrading logrotate configuration..." --time --weight=1
+#ynh_script_progression --message="Upgrading logrotate configuration..." --time --weight=1
 
 # Use logrotate to manage app-specific logfile(s)
-ynh_use_logrotate --non-append
+#ynh_use_logrotate --non-append
 
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
@@ -341,7 +300,7 @@ ynh_use_logrotate --non-append
 #=================================================
 # UPGRADE FAIL2BAN
 #=================================================
-ynh_script_progression --message="Reconfiguring Fail2Ban..." --time --weight=1
+#ynh_script_progression --message="Reconfiguring Fail2Ban..." --weight=1
 
 # Create a dedicated Fail2Ban config
 #TODO!
@@ -350,7 +309,7 @@ ynh_script_progression --message="Reconfiguring Fail2Ban..." --time --weight=1
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --time --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --service_name=nginx --action=reload
 
@@ -358,4 +317,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --time --last
+ynh_script_progression --message="Upgrade of $app completed" --last

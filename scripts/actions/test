@@ -35,7 +35,7 @@ fi
 #=================================================
 # SPECIFIC ACTION
 #=================================================
-# MOVE TO PUBLIC OR PRIVATE
+# ENABLE/DISABLE sending emails
 #=================================================
 ynh_script_progression --message="Toggling test_mode..." --weight=1
 
