@@ -196,7 +196,6 @@ fi
 cd $YNH_CWD
 
 ynh_setup_source --dest_dir="$final_path/lists/securimage" --source_id="securimage"
-#ynh_secure_remove "$final_path/lists/securimage-*.tar.gz"
 
 #fix securimage for captcha plugin -- see https://resources.phplist.com/plugin/captcha#change_to_the_securimage_code
 ynh_replace_string --match_string="public \$session_name   = null;" --replace_string="public \$session_name   = 'phpListSession';" --target_file="$final_path/lists/securimage/securimage.php"
