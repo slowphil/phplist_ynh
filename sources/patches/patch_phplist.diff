@@ -194,3 +194,14 @@
 +
 +$plugins_autoenable = array('YunoSSOPlugin', 'CommonPlugin', 'CaptchaPlugin');
 +
+--- ./admin/locale/fr/phplist.po
++++ ./admin/locale/fr/phplist.po
+@@ -3368,7 +3368,7 @@
+ #: public_html/lists/admin/catlists.php:80 public_html/databasestructure.php:2
+ #: public_html/databasestructure.php:33 public_html/databasestructure.php:147
+ msgid "Name"
+-msgstr "Identifiant de connexion"
++msgstr "Nom"
+ 
+ #: public_html/lists/admin/login.php:124
+ #: public_html/lists/admin/import3.php:237

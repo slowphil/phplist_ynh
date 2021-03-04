@@ -191,8 +191,6 @@ if [ "$language" = "fr" ]; then
   patch -i /$YNH_CWD/../sources/patches/lib-fr.diff $final_path/lists/admin/lib.php
     #the patch applies to our already modified file!
   patch -i /$YNH_CWD/../sources/patches/CaptchaPlugin-fr.diff $final_path/lists/admin/plugins/CaptchaPlugin.php
-  # fix terrible translation for attribute names!
-  sed -i '0,/Identifiant de connexion/ s//Nom/' $final_path/lists/admin/locale/fr/phplist.po
 fi 
  
 cd $YNH_CWD
