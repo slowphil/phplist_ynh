@@ -1,5 +1,5 @@
---- ../sflist-orig/admin/connect.php	2021-03-02 10:24:26.324075645 +0100
-+++ ./admin/connect.php	2021-03-02 10:27:39.240866757 +0100
+--- ./admin/connect.php
++++ ./admin/connect.php
 @@ -290,7 +290,7 @@
      $v = VERSION;
  }
@@ -18,8 +18,8 @@
      } else {
          $pixel = '';
      }
---- ../sflist-orig/admin/defaultconfig.php	2021-03-02 10:24:26.324075645 +0100
-+++ ./admin/defaultconfig.php	2021-03-02 10:27:39.200866593 +0100
+--- ./admin/defaultconfig.php
++++ ./admin/defaultconfig.php
 @@ -711,7 +711,7 @@
      } else {
          $v = VERSION;
@@ -29,8 +29,8 @@
  } else {
      $PoweredBy = '<center><a href="https://www.phplist.com"><img src="images/power-phplist.png" width="88" height="31" title="powered by phplist" alt="powered by phplist" border="0" /></a></center>';
  }
---- ../sflist-orig/admin/init.php	2021-03-02 10:24:26.328075662 +0100
-+++ ./admin/init.php	2021-03-02 10:27:39.260866840 +0100
+--- ./admin/init.php
++++ ./admin/init.php
 @@ -189,10 +189,10 @@
  }
  define('TRANSLATIONS_XML', 'https://translate.phplist.org/translations.xml');
@@ -58,8 +58,8 @@
      }
  }
  
---- ../sflist-orig/admin/lib.php	2021-03-02 10:24:26.328075662 +0100
-+++ ./admin/lib.php	2021-03-02 10:27:39.192866561 +0100
+--- ./admin/lib.php
++++ ./admin/lib.php
 @@ -670,7 +670,7 @@
  }
  
@@ -69,8 +69,8 @@
  }
  
  function timeDiff($time1, $time2)
---- ../sflist-orig/admin/plugins/CaptchaPlugin.php	2021-03-02 11:03:48.469837726 +0100
-+++ ./admin/plugins/CaptchaPlugin.php	2021-03-02 11:06:42.162558316 +0100
+--- ./admin/plugins/CaptchaPlugin.php
++++ ./admin/plugins/CaptchaPlugin.php
 @@ -28,13 +28,6 @@
      public $documentationUrl = 'https://resources.phplist.com/plugin/captcha';
      public $authors = 'Duncan Cameron';
@@ -104,8 +104,8 @@
                      'input_text' => getConfig('captcha_captcha_prompt'),
                  )
              );
---- ../sflist-orig/admin/ui/phplist-ui-bootlist/frontendfooter.php	2021-03-02 11:02:00.693390318 +0100
-+++ ./admin/ui/phplist-ui-bootlist/frontendfooter.php	2021-03-02 11:04:29.106006361 +0100
+--- ./admin/ui/phplist-ui-bootlist/frontendfooter.php
++++ ./admin/ui/phplist-ui-bootlist/frontendfooter.php
 @@ -12,9 +12,9 @@
  </div>
  </div>
@@ -119,8 +119,8 @@
  <script>
  /* do not remove this from here */
  $(document).ready(function(){
---- ../sflist-orig/admin/ui/phplist-ui-bootlist/frontendheader.php	2021-03-02 11:02:00.693390318 +0100
-+++ ./admin/ui/phplist-ui-bootlist/frontendheader.php	2021-03-02 11:04:38.546045532 +0100
+--- ./admin/ui/phplist-ui-bootlist/frontendheader.php
++++ ./admin/ui/phplist-ui-bootlist/frontendheader.php
 @@ -2,7 +2,7 @@
  <meta name="theme-color" content="#2C2C2C"/>
  <link rel="apple-touch-icon" href="./images/phplist-touch-icon.png" />
@@ -130,8 +130,26 @@
  </head>
  
  <body class="fixed">
---- ../sflist-orig/config/config.php	2021-03-02 10:24:26.332075678 +0100
-+++ ./config/config.php	2021-03-02 10:28:36.709102371 +0100
+--- ./config/config.php
++++ ./config/config.php
+@@ -288,7 +288,7 @@
+ // request the "Powered By" image from www.phplist.com, instead of locally. This will give me
+ // a little bit of an indication of how much it is used, which will encourage me to continue
+ // developing phpList. If you do not like this, set Register to 0.
+-define('REGISTER', 1);
++define('REGISTER', 0);
+ 
+ // CREDITS
+ // We request you retain some form of credits on the public elements of
+@@ -309,7 +309,7 @@
+ 
+ // in order to get some feedback about performance, phpList can send statistics to a central
+ // email address. To de-activate this set the following value to 1
+-define('NOSTATSCOLLECTION', 0);
++define('NOSTATSCOLLECTION', 1);
+ 
+ // this is the email it will be sent to. You can leave the default, or you can set it to send
+ // to your self. If you use the default you will give me some feedback about performance
 @@ -638,13 +638,13 @@
  // To add it to your campaigns, you need to add [USERTRACK] somewhere.
  // From version 3 onwards, this is automatically done with the following setting. If you do not
@@ -166,7 +184,7 @@
  
  // Google mail Feedback loop configuration
  // When feedback loop is configured in Google mail according to https://support.google.com/mail/answer/6254652?hl=en
-@@ -884,4 +884,8 @@
+@@ -884,4 +884,7 @@
  
  // For ajax based signup forms (https://discuss.phplist.org/t/solved-ajax-subscribe-api/974) the access-control-allow-origin header has to be set properly.
  // Add the addresses of the websites you want to allow to perform ajax requests to PHPList.
@@ -175,6 +193,4 @@
 +define('ACCESS_CONTROL_ALLOW_ORIGINS', ['https://example.com','https://example.org']);
 +
 +$plugins_autoenable = array('YunoSSOPlugin', 'CommonPlugin', 'CaptchaPlugin');
-+// see https://github.com/phpList/phplist3/issues/718
-+$developer_email = 'none';
-
++

@@ -297,7 +297,11 @@ chown -R $app: $final_path
 password=$(ynh_string_random --length=12)
 
 #setting up from cmd line see https://github.com/phpList/phplist-docker/blob/master/phplist/docker-entrypoint.sh
+# and https://github.com/phpList/phplist3/issues/718
+echo "\$developer_email = 'none';" >> "$final_path/lists/config/config.php"  
 ADMIN_NAME=${admin} ORGANISATION_NAME=${orga} ADMIN_PASSWORD=${password} ADMIN_EMAIL="none" /usr/bin/php "$final_path/lists/admin/index.php" -c "$final_path/lists/config/config.php" -pinitialise
+# now undef $developer_email, otherwise no mail ever gets sent (or give a valid email address for the developer)!
+ynh_replace_string --match_string="\$developer_email =" --replace_string="//\$developer_email =" --target_file="$final_path/lists/config/config.php"
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
