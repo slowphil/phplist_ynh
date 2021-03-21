@@ -52,6 +52,8 @@ All users that are given the phplist admin permission (same as the admin user de
 Fail2ban not configured yet but the Admin page is still protected by Yunohost SSO. Contact me if you know how to setup F2B.
 No logging is implemented but it could be done.
 
+Although the change_url operation is permitted and the application will stil work, this would break **all** the links that were sent to your subscribers... If you must absolutely change the path, I suggest you setup aliases in Nginx so that these "old" links do not return an "error 404".
+
 ## Additional information
 In this package, phpList comes with the set of default plugins (not all activated), plus a custom plugin for the Yunohost SSO. However, for security reasons, adding further phpList plugins can only be done with the help of a Yunohost admin (plugins directory is read-only).
 

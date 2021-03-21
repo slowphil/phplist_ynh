@@ -43,8 +43,8 @@
                 "example": "/example",
                 "default": "/lists",
                 "help": {
-                    "en": "You can only change this before you install and initialise PhpList",
-                    "fr": "Vous pouvez seulement changer ce chemin avant d'initialiser Phplist"
+                    "en": "You should only change this at the time you install PhpList. Afterwards, it would break all the links you have sent out in messages (unless you setup aliases in Nginx)",
+                    "fr": "Vous devriez seulement changer ce chemin à l'installation de Phplist. Plus tard, cela casserait tous les liens envoyés dans les messages (sauf à créer des alias dans Nginx)"
                 }
             },
             {
